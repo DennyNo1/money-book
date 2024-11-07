@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { addBook, getAllBooks } from "../api/book";
 import { useNavigate } from "react-router-dom";
-import { Outlet, Link } from "react-router-dom";
+import { Outlet,  } from "react-router-dom";
 function MoneyBook() {
   const navigate = useNavigate(); //路由跳转
   const [showModal, setShowModal] = useState(false);
@@ -69,7 +69,7 @@ function MoneyBook() {
       </div>
 
       {/* 按钮区域 */}
-      <div className="absolute top-4 right-6">
+      <div className="absolute top-10 right-6">
         <button
           onClick={handleOpenModal}
           className="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition duration-300"
