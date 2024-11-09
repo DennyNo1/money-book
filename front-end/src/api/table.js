@@ -16,8 +16,32 @@ export const addField = async ({ collection, field }) => {
 export const getAllFields = async (collection) => {
   try {
     const response = await axios.get(
-      API_URL + `/book/fields?collection=${collection}`,
-      
+      API_URL + `/book/fields?collection=${collection}`
+    );
+    return response;
+  } catch (error) {
+    console.error("Error adding book:", error);
+    throw error; // 可以在组件中处理错误
+  }
+};
+
+export const addDoc = async ({ collection, doc }) => {
+  try {
+    const response = await axios.post(API_URL + "/book/doc", {
+      collection,
+      doc,
+    });
+    return response; // 返回新添加的书籍信息或状态
+  } catch (error) {
+    console.error("Error adding book:", error);
+    throw error; // 可以在组件中处理错误
+  }
+};
+
+export const getAllDocs = async (collection) => {
+  try {
+    const response = await axios.get(
+      API_URL + `/book/docs?collection=${collection}`
     );
     return response;
   } catch (error) {
