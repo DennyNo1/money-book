@@ -71,45 +71,44 @@ export default function CSTable({ docs }) {
   }, [docs]);
 
   return (
-    <div className="flex flex-row">
-      <div className="flex  flex-col max-w-full p-20">
-        <div className="table w-full shadow-lg rounded-lg overflow-hidden bg-white">
-          {/* 表格头 */}
-          <div className="table-header-group bg-gradient-to-r from-green-400 to-green-600 text-white">
-            <div className="table-row">
-              <div className="table-cell p-6 border-r border-gray-300 last:border-none text-center">
-                <h2 className="text-xl font-semibold">Profit and Loss</h2>
-              </div>
-              <div className="table-cell p-6 border-r border-gray-300 last:border-none text-center">
-                <h2 className="text-xl font-semibold">Present Investment</h2>
-              </div>
+    <div className="flex flex-row gap-4">
+      <div className="table w-full shadow-lg overflow-hidden bg-white">
+        {/* 表格头 */}
+        <div className="table-header-group bg-gradient-to-r from-green-400 to-green-600 text-white">
+          <div className="table-row">
+            <div className="table-cell p-3 border-r border-gray-300 last:border-none text-center whitespace-nowrap">
+              <h2 className=" font-semibold">Profit and Loss</h2>
             </div>
-          </div>
-
-          <div className="table-row-group">
-            {" "}
-            {data.map((item, index) => {
-              return (
-                <div key={index} className="table-row ">
-                  {item.data.map((cell, index2) => (
-                    <div
-                      key={index2}
-                      className="table-cell p-6 border-gray-300 text-center border-y-2  max-w-lg break-words"
-                    >
-                      <h2 className="text-xl font-semibold max-w-lg break-words">
-                        {cell.value}
-                      </h2>
-                    </div>
-                  ))}
-
-                  {/* 渲染Total P&L和 Total Investment*/}
-                </div>
-              );
-            })}
+            <div className="table-cell p-3 border-r border-gray-300 last:border-none text-center whitespace-nowrap">
+              <h2 className=" font-semibold">Present Investment</h2>
+            </div>
           </div>
         </div>
 
-        {/* <div>
+        <div className="table-row-group">
+          {" "}
+          {data.map((item, index) => {
+            return (
+              <div key={index} className="table-row ">
+                {item.data.map((cell, index2) => (
+                  <div
+                    key={index2}
+                    className="table-cell p-3 border-gray-300 text-center border-y-2  max-w-lg break-words"
+                  >
+                    <h2 className="  max-w-lg break-words">
+                      {cell.value}
+                    </h2>
+                  </div>
+                ))}
+
+                {/* 渲染Total P&L和 Total Investment*/}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* <div>
         <div>
           Profit and Loss
           {data.map((item, index) => {
@@ -125,56 +124,38 @@ export default function CSTable({ docs }) {
       </div>
       <div>Total P&L:{totalPL}</div>
       <div>Total Investment:{totalInvestment}</div> */}
-      </div>
-      <div className="flex  flex-col max-w-full p-20">
-        <div className="table w-full shadow-lg rounded-lg overflow-hidden bg-white">
-          {/* 表格头 */}
-          <div className="table-header-group bg-gradient-to-r from-green-400 to-green-600 text-white">
-            <div className="table-row">
-              <div className="table-cell p-6 border-r border-gray-300 last:border-none text-center">
-                <h2 className="text-xl font-semibold">Total P&L</h2>
-              </div>
-              <div className="table-cell p-6 border-r border-gray-300 last:border-none text-center">
-                <h2 className="text-xl font-semibold">Total Investment</h2>
-              </div>
+
+      {/* 第二张表 */}
+      <div className="table w-full shadow-lg  overflow-hidden bg-white ">
+        {/* 表格头 */}
+        <div className="table-header-group bg-gradient-to-r from-green-400 to-green-600 text-white">
+          <div className="table-row">
+            <div className="table-cell p-3 border-r border-gray-300 last:border-none text-center whitespace-nowrap">
+              <h2 className=" font-semibold">Total P&L</h2>
             </div>
-          </div>
-
-          <div className="table-row-group">
-            {" "}
-            <div className="table-row ">
-              <div className="table-cell p-6 border-gray-300 text-center border-y-2  max-w-lg break-words">
-                <h2 className="text-xl font-semibold max-w-lg break-words">
-                  {totalPL}
-                </h2>
-              </div>
-              <div className="table-cell p-6 border-gray-300 text-center border-y-2  max-w-lg break-words">
-                <h2 className="text-xl font-semibold max-w-lg break-words">
-                  {totalInvestment}
-                </h2>
-              </div>
-
-              {/* 渲染Total P&L和 Total Investment*/}
+            <div className="table-cell p-3 border-r border-gray-300 last:border-none text-center whitespace-nowrap">
+              <h2 className=" font-semibold">Total Investment</h2>
             </div>
           </div>
         </div>
 
-        {/* <div>
-        <div>
-          Profit and Loss
-          {data.map((item, index) => {
-            return <div key={index}>{item.data[0].value}</div>;
-          })}
+        <div className="table-row-group">
+          {" "}
+          <div className="table-row ">
+            <div className="table-cell p-3 border-gray-300 text-center border-y-2  max-w-lg break-words">
+              <h2 className=" max-w-lg break-words">
+                {totalPL}
+              </h2>
+            </div>
+            <div className="table-cell p-3 border-gray-300 text-center border-y-2  max-w-lg break-words">
+              <h2 className=" max-w-lg break-words">
+                {totalInvestment}
+              </h2>
+            </div>
+
+            {/* 渲染Total P&L和 Total Investment*/}
+          </div>
         </div>
-        <div>
-          Present Investment{" "}
-          {data.map((item, index) => {
-            return <div key={index}>{item.data[1].value}</div>;
-          })}
-        </div>
-      </div>
-      <div>Total P&L:{totalPL}</div>
-      <div>Total Investment:{totalInvestment}</div> */}
       </div>
     </div>
   );

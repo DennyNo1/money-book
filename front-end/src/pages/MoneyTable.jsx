@@ -138,36 +138,35 @@ export default function MoneyTable() {
   };
 
   return (
-    <div className="h-screen w-screen bg-gradient-to-r from-green-100 to-white flex items-center justify-center ">
-      {/* 表格 */}
-      <div className="flex  flex-col max-w-full p-20">
-        <div className="table w-full shadow-lg rounded-lg overflow-hidden bg-white">
+    <div className="min-h-screen min-w-screen  bg-gradient-to-r from-green-100 to-white flex  justify-center  border-4 flex-col">
+      {/* 表格组*/}
+      <div className="flex flex-row max-w-full px-20 ">
+        {/* 主表格 */}
+        <div className="table w-full max-w-full max-h-[500px] overflow-auto shadow-lg  bg-white">
           {/* 表格头 */}
           <div className="table-header-group bg-gradient-to-r from-green-400 to-green-600 text-white">
             <div className="table-row">
               {allFields.map((item, index) => (
                 <div
                   key={index}
-                  className="table-cell p-6 border-r border-gray-300 last:border-none text-center"
+                  className="table-cell p-3 border-r border-gray-300 last:border-none text-center whitespace-nowrap"
                 >
-                  <h2 className="text-xl font-semibold">{item}</h2>
+                  <h2 className=" font-semibold">{item}</h2>
                 </div>
               ))}
             </div>
           </div>
 
           {/* 表格行 */}
-          <div className="table-row-group ">
-            {docs.map((item, rowIndex) => (
-              <div key={rowIndex} className="table-row ">
+          <div className="table-row-group overflow-x-auto">
+          {docs.map((item, rowIndex) => (
+              <div key={rowIndex} className="table-row">
                 {item.doc.map((cell, index) => (
                   <div
                     key={index}
-                    className="table-cell p-6 border-gray-300 text-center border-y-2  max-w-lg break-words max-h-[80px]"
+                    className="table-cell p-3 border-gray-300 text-center border-y-2 whitespace-nowrap overflow-hidden"
                   >
-                    <h2 className="text-xl font-semibold max-w-lg break-words">
-                      {cell.value}
-                    </h2>
+                    <h2 className=" ">{cell.value}</h2>
                   </div>
                 ))}
 
@@ -176,7 +175,7 @@ export default function MoneyTable() {
                   (_, index) => (
                     <div
                       key={`empty-${index}`}
-                      className="table-cell p-6 border-gray-300 text-center border-y-2 max-h-[80px]"
+                      className="table-cell p-3 border-gray-300 text-center border-y-2"
                     >
                       {/* 空白内容 */}
                     </div>
@@ -187,17 +186,17 @@ export default function MoneyTable() {
 
             {/* 新增行 */}
             {showInput && (
-              <div className="table-row">
+              <div className="table-row ">
                 {allFields.map((item, index) => (
                   <div
-                    className="table-cell  p-4  text-center border-y-2 "
+                    className="table-cell p-3 text-center border-y-2"
                     key={index}
                   >
                     <div className="flex justify-center items-center">
                       {item.toLowerCase().includes("date") ? (
                         <input
                           type="date"
-                          className="text-xl font-semibold w-full max-w-fit p-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 "
+                          className="  w-full max-w-fit p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
                           value={inputValues[index]}
                           onChange={(e) =>
                             handleInputChange(
@@ -213,7 +212,7 @@ export default function MoneyTable() {
                           item.toLowerCase().includes("amount")
                         ) ? (
                         <textarea
-                          className="text-xl font-semibold w-full max-w-full p-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 resize-none  break-words"
+                          className=" w-full max-w-full p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 resize-none whitespace-nowrap"
                           placeholder="Please input"
                           rows="1"
                           onInput={(e) => {
@@ -235,7 +234,7 @@ export default function MoneyTable() {
                       ) : (
                         <input
                           type="number"
-                          className="text-xl font-semibold w-full max-w-fit p-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 "
+                          className="text-xl font-semibold w-full max-w-fit p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
                           value={inputValues[index]}
                           onChange={(e) =>
                             handleInputChange(
@@ -252,47 +251,43 @@ export default function MoneyTable() {
               </div>
             )}
           </div>
-        </div>
-
-        {/* 按钮组 。之后还需要一个删除doc的按钮，预计引入redux*/}
-        <div className="  flex mt-2 justify-between">
-          <div>
-            {!showInput ? (
-              <div
-                onClick={handleAddRow}
-                className="w-10 h-10 bg-purple-600 text-white text-2xl flex items-center justify-center rounded-full cursor-pointer transition-transform duration-300 ease-in-out hover:scale-110 "
-              >
-                ➕
-              </div>
-            ) : (
-              <div
-                onClick={handleAddRow}
-                className="w-10 h-10 bg-purple-600 text-white text-2xl flex items-center justify-center rounded-full cursor-pointer transition-transform duration-300 ease-in-out hover:scale-110 "
-              >
-                ➖
-              </div>
-            )}
-          </div>
-          {showInput && (
-            <div className="flex space-x-4  ">
-              {/* <div
-                onClick={handleAddRow}
-                className="w-10 h-10 bg-purple-600 text-white text-2xl flex items-center justify-center rounded-full cursor-pointer transition-transform duration-300 ease-in-out hover:scale-110  "
-              >
-                ❌
-              </div> */}
-              <div
-                onClick={handleSubmitRow}
-                className="w-10 h-10 bg-purple-600 text-white text-2xl flex items-center justify-center rounded-full cursor-pointer transition-transform duration-300 ease-in-out hover:scale-110  "
-              >
-                ✔
-              </div>
-            </div>
-          )}
+        </div>{" "}
+        <div className="ml-4">
+          {" "}
+          <CSTable docs={docs} />
         </div>
       </div>
 
-      <CSTable docs={docs}></CSTable>
+      {/* 按钮组 */}
+      <div className="   flex px-20 py-2">
+        <div>
+          {!showInput ? (
+            <div
+              onClick={handleAddRow}
+              className="w-10 h-10 bg-purple-600 text-white text-2xl flex items-center justify-center rounded-full cursor-pointer transition-transform duration-300 ease-in-out hover:scale-110"
+            >
+              ➕
+            </div>
+          ) : (
+            <div
+              onClick={handleAddRow}
+              className="w-10 h-10 bg-purple-600 text-white text-2xl flex items-center justify-center rounded-full cursor-pointer transition-transform duration-300 ease-in-out hover:scale-110"
+            >
+              ➖
+            </div>
+          )}
+        </div>
+        {showInput && (
+          <div className="flex space-x-4 border-2">
+            <div
+              onClick={handleSubmitRow}
+              className="w-10 h-10 bg-purple-600 text-white text-2xl flex items-center justify-center rounded-full cursor-pointer transition-transform duration-300 ease-in-out hover:scale-110"
+            >
+              ✔
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* 添加列名按钮 */}
       <div className="absolute top-10 right-6">
