@@ -47,3 +47,32 @@ exports.getAllBooks = async (req, res) => {
     res.status(500).json({ message: "An error occurred", error });
   }
 };
+
+exports.deleteBook = async (req, res) => {
+  const name = req.params.name;
+  if (!name) {
+    return res.status(400).json({ message: "Name is required" });
+  }
+  try {
+    const deleteCollectionName = name;
+    const db = mongoose.connection.db; // 获取原生的 `db` 对象
+
+    // 检查集合是否存在
+    const collections = await db
+      .listCollections({ name: deleteCollectionName })
+      .toArray();
+    if (collections.length === 0) {
+      return res.status(201).json({
+        message: `Collection '${deleteCollectionName}' dose not exist`,
+      });
+    }
+    await db.dropCollection(deleteCollectionName);
+    const books = await Book.deleteOne({ name });
+    res.status(200).json({
+      message: "This book has been deleted and collection dropped",
+      deleteCollectionName,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "An error occurred", error });
+  }
+};

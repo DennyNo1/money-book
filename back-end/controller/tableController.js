@@ -59,7 +59,7 @@ exports.getAllFields = async (req, res) => {
   try {
     console.log("Received request");
     const { collection } = req.query;
-    console.log(collection);
+    // console.log(collection);
     // 使用 MongoDB 原生驱动操作动态集合
     const result = await mongoose.connection.db
       .collection(collection)
@@ -129,7 +129,7 @@ exports.getAllDocs = async (req, res) => {
   try {
     console.log("Received request");
     const { collection } = req.query;
-    console.log(collection);
+    // console.log(collection);
     // 使用 MongoDB 原生驱动操作动态集合
     const result = await mongoose.connection.db
       .collection(collection)

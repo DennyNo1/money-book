@@ -21,3 +21,14 @@ export const getAllBooks = async () => {
     throw error; // 可以在组件中处理错误
   }
 };
+
+//正常来说，增删改查都应该依赖于bookid而不是bookname。这是之后改进的方向
+export const deleteBook = async (name) => {
+  try {
+    const response = await axios.delete(API_URL + `/book/${name}`);
+    return response; // 返回删除的书籍信息或状态
+  } catch (error) {
+    console.error("Error deleting book:", error);
+    throw error; // 可以在组件中处理错误
+  }
+};

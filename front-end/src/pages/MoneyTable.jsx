@@ -3,27 +3,35 @@ import { useParams } from "react-router-dom";
 
 import { addField, getAllFields, addDoc, getAllDocs } from "../api/table";
 
+import CSTable from "../components/CSTable";
+
 export default function MoneyTable() {
   //添加字段的弹窗的开关
   const [showModal, setShowModal] = useState(false);
   //添加字段的输入框
   const [input, setInput] = useState([]);
 
-  //所有字段或者叫列组成的数组
+  //所有字段组成的数组
   const [allFields, setAllFields] = useState([]);
+  //除了列的整个表格
   const [docs, setDocs] = useState([]);
 
   const [showInput, setShowInput] = useState(false);
 
+  //输入框的显示值
   const [inputValues, setInputValues] = useState(
     Array(allFields.length).fill("")
   ); // 初始值为空
+
+  //传递往后端的数据
+  const [sendInput, setSendInput] = useState([]);
   //从url获取collectionName
   const { name } = useParams();
 
-  const [sendInput, setSendInput] = useState([{}]);
   const handleOpenModal = () => setShowModal(true);
   const handleCloseModal = () => setShowModal(false);
+
+  //添加field
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -68,7 +76,7 @@ export default function MoneyTable() {
     try {
       //对后端传过来的数据进行处理
       const { data } = await getAllDocs(name);
-      console.log(data);
+      // console.log(data);
       // const newArr = data.data.map((item) => item.doc);
       setDocs(data.data);
     } catch (error) {
@@ -81,7 +89,7 @@ export default function MoneyTable() {
   };
   //向后端提交一行数据
   const handleSubmitRow = async () => {
-    console.log(inputValues);
+    // console.log(sendInput);
     try {
       const response = await addDoc({
         collection: name,
@@ -93,6 +101,7 @@ export default function MoneyTable() {
         return;
       }
       setInputValues(Array(allFields.length).fill(""));
+      initSendInput();
       setShowInput(false);
       fetchDocs();
     } catch (error) {
@@ -100,11 +109,25 @@ export default function MoneyTable() {
     }
   };
 
+  //初始化
+  const initSendInput = () => {
+    const newSendInput = [];
+    allFields.map((item, index) => {
+      newSendInput.push({ field: item, value: "" });
+    });
+    return newSendInput;
+  };
+
   useEffect(() => {
     fetchFields();
     fetchDocs();
   }, []);
 
+  // 当 allFields 更新时，重新初始化 sendInput.有依赖数组时，作用基本等同于watch。
+  useEffect(() => {
+    setSendInput(initSendInput());
+  }, [allFields]);
+  //输入值改变时，InputValues更新，同时更新sendInput
   const handleInputChange = (index, value, field) => {
     const newValues = [...inputValues];
     newValues[index] = value;
@@ -134,13 +157,13 @@ export default function MoneyTable() {
           </div>
 
           {/* 表格行 */}
-          <div className="table-row-group">
+          <div className="table-row-group ">
             {docs.map((item, rowIndex) => (
               <div key={rowIndex} className="table-row ">
                 {item.doc.map((cell, index) => (
                   <div
                     key={index}
-                    className="table-cell p-6 border-gray-300 text-center border-y-2  max-w-lg break-words"
+                    className="table-cell p-6 border-gray-300 text-center border-y-2  max-w-lg break-words max-h-[80px]"
                   >
                     <h2 className="text-xl font-semibold max-w-lg break-words">
                       {cell.value}
@@ -153,7 +176,7 @@ export default function MoneyTable() {
                   (_, index) => (
                     <div
                       key={`empty-${index}`}
-                      className="table-cell p-6 border-gray-300 text-center border-y-2"
+                      className="table-cell p-6 border-gray-300 text-center border-y-2 max-h-[80px]"
                     >
                       {/* 空白内容 */}
                     </div>
@@ -166,27 +189,64 @@ export default function MoneyTable() {
             {showInput && (
               <div className="table-row">
                 {allFields.map((item, index) => (
-                  <div className="table-cell p-4 border-gray-300 text-center border-y-2">
-                    <textarea
-                      className="text-xl font-semibold w-full max-w-[150px] p-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 resize-none"
-                      placeholder="Please input "
-                      rows="1"
-                      onInput={(e) => {
-                        e.target.style.height = "auto"; // 重置高度
-                        e.target.style.height = `${e.target.scrollHeight}px`; // 设置为内容高度
-                      }}
-                      style={{
-                        overflow: "hidden", // 隐藏滚动条
-                      }}
-                      value={inputValues[index]} // 绑定输入框的值
-                      onChange={(e) =>
-                        handleInputChange(
-                          index,
-                          e.target.value,
-                          allFields[index]
-                        )
-                      } // 更新状态
-                    />
+                  <div
+                    className="table-cell  p-4  text-center border-y-2 "
+                    key={index}
+                  >
+                    <div className="flex justify-center items-center">
+                      {item.toLowerCase().includes("date") ? (
+                        <input
+                          type="date"
+                          className="text-xl font-semibold w-full max-w-fit p-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 "
+                          value={inputValues[index]}
+                          onChange={(e) =>
+                            handleInputChange(
+                              index,
+                              e.target.value,
+                              allFields[index]
+                            )
+                          }
+                        />
+                      ) : !(
+                          item.toLowerCase().includes("price") ||
+                          item.toLowerCase().includes("income") ||
+                          item.toLowerCase().includes("amount")
+                        ) ? (
+                        <textarea
+                          className="text-xl font-semibold w-full max-w-full p-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 resize-none  break-words"
+                          placeholder="Please input"
+                          rows="1"
+                          onInput={(e) => {
+                            e.target.style.height = "auto"; // 重置高度
+                            e.target.style.height = `${e.target.scrollHeight}px`; // 设置为内容高度
+                          }}
+                          style={{
+                            overflow: "hidden", // 隐藏滚动条
+                          }}
+                          value={inputValues[index]} // 绑定输入框的值
+                          onChange={(e) =>
+                            handleInputChange(
+                              index,
+                              e.target.value,
+                              allFields[index]
+                            )
+                          } // 更新状态
+                        ></textarea>
+                      ) : (
+                        <input
+                          type="number"
+                          className="text-xl font-semibold w-full max-w-fit p-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 "
+                          value={inputValues[index]}
+                          onChange={(e) =>
+                            handleInputChange(
+                              index,
+                              e.target.value,
+                              allFields[index]
+                            )
+                          }
+                        />
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -194,7 +254,7 @@ export default function MoneyTable() {
           </div>
         </div>
 
-        {/* 按钮组 */}
+        {/* 按钮组 。之后还需要一个删除doc的按钮，预计引入redux*/}
         <div className="  flex mt-2 justify-between">
           <div>
             {!showInput ? (
@@ -232,7 +292,9 @@ export default function MoneyTable() {
         </div>
       </div>
 
-      {/* 添加列按钮 */}
+      <CSTable docs={docs}></CSTable>
+
+      {/* 添加列名按钮 */}
       <div className="absolute top-10 right-6">
         <button
           onClick={handleOpenModal}
@@ -241,7 +303,7 @@ export default function MoneyTable() {
           Add New Field
         </button>
       </div>
-      {/* 弹窗 */}
+      {/* 添加field的弹窗 */}
       <div className="flex items-center justify-center">
         {showModal && (
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
