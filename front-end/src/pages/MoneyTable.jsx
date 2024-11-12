@@ -8,12 +8,13 @@ import CSTable from "../components/CSTable";
 export default function MoneyTable() {
   //添加字段的弹窗的开关
   const [showModal, setShowModal] = useState(false);
+
   //添加字段的输入框
   const [input, setInput] = useState([]);
 
   //所有字段组成的数组
   const [allFields, setAllFields] = useState([]);
-  //除了列的整个表格
+  //除了字段的整个表格的数据
   const [docs, setDocs] = useState([]);
 
   const [showInput, setShowInput] = useState(false);
@@ -23,7 +24,7 @@ export default function MoneyTable() {
     Array(allFields.length).fill("")
   ); // 初始值为空
 
-  //传递往后端的数据
+  //传递往后端的行数据
   const [sendInput, setSendInput] = useState([]);
   //从url获取collectionName
   const { name } = useParams();
@@ -63,9 +64,10 @@ export default function MoneyTable() {
     try {
       //对后端传过来的数据进行处理
       const { data } = await getAllFields(name);
+
       //获取只有fieldName的对象的数组。但我觉得没必要
-      const newArr = data.data.map((item) => item.fieldName);
-      setAllFields(newArr);
+
+      setAllFields(data.data);
     } catch (error) {
       console.error("Error fetching table:", error);
     }
@@ -76,8 +78,6 @@ export default function MoneyTable() {
     try {
       //对后端传过来的数据进行处理
       const { data } = await getAllDocs(name);
-      // console.log(data);
-      // const newArr = data.data.map((item) => item.doc);
       setDocs(data.data);
     } catch (error) {
       console.error("Error fetching docs:", error);
@@ -159,28 +159,27 @@ export default function MoneyTable() {
 
           {/* 表格行 */}
           <div className="table-row-group overflow-x-auto">
-          {docs.map((item, rowIndex) => (
-              <div key={rowIndex} className="table-row">
-                {item.doc.map((cell, index) => (
+            {docs.map((doc, index) => (
+              <div key={index} className="table-row">
+                {allFields.map((field, key) => (
                   <div
-                    key={index}
+                    key={key}
                     className="table-cell p-3 border-gray-300 text-center border-y-2 whitespace-nowrap overflow-hidden"
                   >
-                    <h2 className=" ">{cell.value}</h2>
+                    <h2 className="">{doc[field]}</h2>{" "}
+                    {/* 这里你可以填充你想展示的内容 */}
                   </div>
                 ))}
 
                 {/* 渲染空白单元格 */}
-                {Array.from({ length: allFields.length - item.doc.length }).map(
+                {/* {Array.from({ length: allFields.length - item.doc.length }).map(
                   (_, index) => (
                     <div
                       key={`empty-${index}`}
                       className="table-cell p-3 border-gray-300 text-center border-y-2"
-                    >
-                      {/* 空白内容 */}
-                    </div>
+                    ></div>
                   )
-                )}
+                )} */}
               </div>
             ))}
 
@@ -252,10 +251,7 @@ export default function MoneyTable() {
             )}
           </div>
         </div>{" "}
-        <div className="ml-4">
-          {" "}
-          <CSTable docs={docs} />
-        </div>
+        <div className="ml-4"> {/* <CSTable docs={docs} /> */}</div>
       </div>
 
       {/* 按钮组 */}
