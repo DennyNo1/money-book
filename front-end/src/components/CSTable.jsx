@@ -9,36 +9,32 @@ export default function CSTable({ docs }) {
     const newData = [];
     let newTotalPL = 0;
     let newTotalInvestment = 0;
-    docs.map((docsObj) => {
-      const doc = docsObj.doc;
+    docs.map((doc) => {
       //新的每一行
       const newRow = {};
       //保持同一id
-      newRow.id = docsObj._id;
-      newRow.type = "caculation";
-      //price和amount是必存在的
-      const amount = Number(doc.find((item) => item.field === "Amount").value);
+      newRow.id = doc._id;
 
-      const price =
-        Number(doc.find((item) => item.field === "Unit Price")?.value) || 0;
-      console.log(price);
+      //price和amount是必存在的
+      const amount = Number(doc["Amount"]) || 0;
+
+      const price = Number(doc["Unit Price"]) || 0;
+
       //后面两个值可能为0或null
-      const rentalIncome =
-        Number(doc.find((item) => item.field === "Rental Income")?.value) || 0;
-      console.log(rentalIncome);
-      const totalSalesPrice =
-        Number(doc.find((item) => item.field === "Total Sales Price")?.value) ||
-        0;
-      console.log(totalSalesPrice);
+      const rentalIncome = Number(doc["Rental Income"]) || 0;
+
+      const totalSellPrice = Number(doc["Total Sell Price"]) || 0;
+
+      console.log(amount,price,rentalIncome,totalSellPrice)
       //专门装数据的数组
       const array = [];
 
-      if (totalSalesPrice !== 0) {
-        const profitAndLoss = totalSalesPrice + rentalIncome - amount * price;
+      if (totalSellPrice !== 0) {
+        const profitAndLoss = totalSellPrice + rentalIncome - amount * price;
         //说明已经卖出去了
         array.push({
           field: "Profit and Loss",
-          value: totalSalesPrice + rentalIncome - amount * price,
+          value: totalSellPrice + rentalIncome - amount * price,
         });
         array.push({
           field: "Present Investment",
@@ -67,7 +63,9 @@ export default function CSTable({ docs }) {
     setTotalInvestment(newTotalInvestment);
   };
   useEffect(() => {
-    updateData();
+    if (docs.length > 0) {
+      updateData();
+    }
   }, [docs]);
 
   return (
@@ -95,9 +93,7 @@ export default function CSTable({ docs }) {
                     key={index2}
                     className="table-cell p-3 border-gray-300 text-center border-y-2  max-w-lg break-words"
                   >
-                    <h2 className="  max-w-lg break-words">
-                      {cell.value}
-                    </h2>
+                    <h2 className="  max-w-lg break-words">{cell.value}</h2>
                   </div>
                 ))}
 
@@ -134,7 +130,7 @@ export default function CSTable({ docs }) {
               <h2 className=" font-semibold">Total P&L</h2>
             </div>
             <div className="table-cell p-3 border-r border-gray-300 last:border-none text-center whitespace-nowrap">
-              <h2 className=" font-semibold">Total Investment</h2>
+              <h2 className=" font-semibold">Current Investment</h2>
             </div>
           </div>
         </div>
@@ -143,14 +139,10 @@ export default function CSTable({ docs }) {
           {" "}
           <div className="table-row ">
             <div className="table-cell p-3 border-gray-300 text-center border-y-2  max-w-lg break-words">
-              <h2 className=" max-w-lg break-words">
-                {totalPL}
-              </h2>
+              <h2 className=" max-w-lg break-words">{totalPL}</h2>
             </div>
             <div className="table-cell p-3 border-gray-300 text-center border-y-2  max-w-lg break-words">
-              <h2 className=" max-w-lg break-words">
-                {totalInvestment}
-              </h2>
+              <h2 className=" max-w-lg break-words">{totalInvestment}</h2>
             </div>
 
             {/* 渲染Total P&L和 Total Investment*/}

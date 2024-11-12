@@ -19,13 +19,11 @@ export default function MoneyTable() {
 
   const [showInput, setShowInput] = useState(false);
 
-  //输入框的显示值
+  //row输入框的显示值
   const [inputValues, setInputValues] = useState(
     Array(allFields.length).fill("")
   ); // 初始值为空
 
-  //传递往后端的行数据
-  const [sendInput, setSendInput] = useState([]);
   //从url获取collectionName
   const { name } = useParams();
 
@@ -77,6 +75,7 @@ export default function MoneyTable() {
   const fetchDocs = async () => {
     try {
       //对后端传过来的数据进行处理
+
       const { data } = await getAllDocs(name);
       setDocs(data.data);
     } catch (error) {
@@ -89,11 +88,15 @@ export default function MoneyTable() {
   };
   //向后端提交一行数据
   const handleSubmitRow = async () => {
-    // console.log(sendInput);
+    //根据inputValues生成sendInput
+    const sendValues = {};
+    for (let i = 0; i < allFields.length; i++) {
+      sendValues[allFields[i]] = inputValues[i];
+    }
     try {
       const response = await addDoc({
         collection: name,
-        doc: sendInput,
+        doc: sendValues,
       });
 
       if (response.status !== 200) {
@@ -101,7 +104,7 @@ export default function MoneyTable() {
         return;
       }
       setInputValues(Array(allFields.length).fill(""));
-      initSendInput();
+
       setShowInput(false);
       fetchDocs();
     } catch (error) {
@@ -109,38 +112,22 @@ export default function MoneyTable() {
     }
   };
 
-  //初始化
-  const initSendInput = () => {
-    const newSendInput = [];
-    allFields.map((item, index) => {
-      newSendInput.push({ field: item, value: "" });
-    });
-    return newSendInput;
-  };
-
   useEffect(() => {
     fetchFields();
     fetchDocs();
   }, []);
 
-  // 当 allFields 更新时，重新初始化 sendInput.有依赖数组时，作用基本等同于watch。
-  useEffect(() => {
-    setSendInput(initSendInput());
-  }, [allFields]);
   //输入值改变时，InputValues更新，同时更新sendInput
-  const handleInputChange = (index, value, field) => {
-    const newValues = [...inputValues];
-    newValues[index] = value;
-    const newSendInput = [...sendInput];
-    newSendInput[index] = { field, value };
-    setInputValues(newValues);
-    setSendInput(newSendInput);
+  const handleInputChange = (index, value) => {
+    const newInputValues = [...inputValues];
+    newInputValues[index] = value;
+    setInputValues(newInputValues);
   };
 
   return (
     <div className="min-h-screen min-w-screen  bg-gradient-to-r from-green-100 to-white flex  justify-center  border-4 flex-col">
       {/* 表格组*/}
-      <div className="flex flex-row max-w-full px-20 ">
+      <div className="flex flex-row max-w-full px-10 ">
         {/* 主表格 */}
         <div className="table w-full max-w-full max-h-[500px] overflow-auto shadow-lg  bg-white">
           {/* 表格头 */}
@@ -159,20 +146,20 @@ export default function MoneyTable() {
 
           {/* 表格行 */}
           <div className="table-row-group overflow-x-auto">
-            {docs.map((doc, index) => (
-              <div key={index} className="table-row">
-                {allFields.map((field, key) => (
-                  <div
-                    key={key}
-                    className="table-cell p-3 border-gray-300 text-center border-y-2 whitespace-nowrap overflow-hidden"
-                  >
-                    <h2 className="">{doc[field]}</h2>{" "}
-                    {/* 这里你可以填充你想展示的内容 */}
-                  </div>
-                ))}
+            {docs.length > 0 &&
+              docs.map((doc, docIndex) => (
+                <div key={docIndex} className="table-row">
+                  {allFields.map((field, index) => (
+                    <div
+                      key={index}
+                      className="table-cell p-3 border-gray-300 text-center border-y-2 whitespace-nowrap overflow-hidden"
+                    >
+                      <h2 className="">{doc[field]}</h2>{" "}
+                    </div>
+                  ))}
 
-                {/* 渲染空白单元格 */}
-                {/* {Array.from({ length: allFields.length - item.doc.length }).map(
+                  {/* 渲染空白单元格 */}
+                  {/* {Array.from({ length: allFields.length - item.doc.length }).map(
                   (_, index) => (
                     <div
                       key={`empty-${index}`}
@@ -180,8 +167,8 @@ export default function MoneyTable() {
                     ></div>
                   )
                 )} */}
-              </div>
-            ))}
+                </div>
+              ))}
 
             {/* 新增行 */}
             {showInput && (
@@ -198,11 +185,7 @@ export default function MoneyTable() {
                           className="  w-full max-w-fit p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
                           value={inputValues[index]}
                           onChange={(e) =>
-                            handleInputChange(
-                              index,
-                              e.target.value,
-                              allFields[index]
-                            )
+                            handleInputChange(index, e.target.value)
                           }
                         />
                       ) : !(
@@ -223,11 +206,7 @@ export default function MoneyTable() {
                           }}
                           value={inputValues[index]} // 绑定输入框的值
                           onChange={(e) =>
-                            handleInputChange(
-                              index,
-                              e.target.value,
-                              allFields[index]
-                            )
+                            handleInputChange(index, e.target.value)
                           } // 更新状态
                         ></textarea>
                       ) : (
@@ -251,7 +230,10 @@ export default function MoneyTable() {
             )}
           </div>
         </div>{" "}
-        <div className="ml-4"> {/* <CSTable docs={docs} /> */}</div>
+        <div className="ml-4">
+          {" "}
+          <CSTable docs={docs} />
+        </div>
       </div>
 
       {/* 按钮组 */}

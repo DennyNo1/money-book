@@ -69,7 +69,9 @@ exports.getAllFields = async (req, res) => {
     }
 
     // 返回查询结果
-    res.status(200).json({ message: "Fields of this book found", data: doc.fields });
+    res
+      .status(200)
+      .json({ message: "Fields of this book found", data: doc.fields });
   } catch (error) {
     res.status(500).json({ message: "An error occurred", error });
   }
@@ -124,15 +126,33 @@ exports.getAllDocs = async (req, res) => {
     const { collection } = req.query;
     // console.log(collection);
     // 使用 MongoDB 原生驱动操作动态集合
+    // Step 1: 检查集合是否存在
+    const collections = await mongoose.connection.db
+      .listCollections()
+      .toArray();
+    const collectionNames = collections.map((col) => col.name);
+
+    if (!collectionNames.includes(collection)) {
+      // 如果集合不存在，返回 404 错误
+      return res
+        .status(404)
+        .json({
+          message: `Collection '${collection}' does not exist`,
+          data: [],
+        });
+    }
+
+    // Step 2: 检查该集合是否有文档
     const result = await mongoose.connection.db
       .collection(collection)
-      .find({}) // 查找所有文档，空对象表示没有条件
+      .find({}) // 查找所有文档
       .toArray(); // 转换结果为数组
 
     if (result.length === 0) {
+      // 如果集合有，但没有文档，返回适当的响应
       return res
-        .status(204)
-        .json({ message: "No such a collection or there are no docs in it" });
+        .status(200)
+        .json({ message: "No documents found in the collection", data: [] });
     }
 
     // 返回查询结果
