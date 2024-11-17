@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const Table = require("../model/tableModel");
+
 const Book = require("../model/bookModel");
 
 //添加字段现在改变为对BookModel进行的操作
@@ -123,9 +123,8 @@ exports.addDoc = async (req, res) => {
 exports.getAllDocs = async (req, res) => {
   try {
     console.log("Received request");
-    const { collection } = req.query;
-    // console.log(collection);
-    // 使用 MongoDB 原生驱动操作动态集合
+    const { collection, order, orderBy } = req.query;
+
     // Step 1: 检查集合是否存在
     const collections = await mongoose.connection.db
       .listCollections()
@@ -134,19 +133,23 @@ exports.getAllDocs = async (req, res) => {
 
     if (!collectionNames.includes(collection)) {
       // 如果集合不存在，返回 404 错误
-      return res
-        .status(404)
-        .json({
-          message: `Collection '${collection}' does not exist`,
-          data: [],
-        });
+      return res.status(404).json({
+        message: `Collection '${collection}' does not exist`,
+        data: [],
+      });
     }
 
-    // Step 2: 检查该集合是否有文档
-    const result = await mongoose.connection.db
-      .collection(collection)
-      .find({}) // 查找所有文档
-      .toArray(); // 转换结果为数组
+    let query = mongoose.connection.db.collection(collection).find({});
+
+    // 如果 orderBy 和 order 存在，则添加排序
+    if (orderBy && order) {
+      // 如果 order 为 "asc" 表示升序，用 1，"desc" 表示降序，用 -1
+      const sortOrder = order === "asc" ? 1 : -1;
+      query = query.sort({ [orderBy]: sortOrder });
+    }
+
+    // 转换查询结果为数组
+    const result = await query.toArray();
 
     if (result.length === 0) {
       // 如果集合有，但没有文档，返回适当的响应
@@ -159,5 +162,54 @@ exports.getAllDocs = async (req, res) => {
     res.status(200).json({ message: "Documents found", data: result });
   } catch (error) {
     res.status(500).json({ message: "An error occurred", error });
+  }
+};
+exports.updateDoc = async (req, res) => {
+  const { collection, doc } = req.body;
+  console.log(req.body);
+  console.log(doc);
+
+  try {
+    // Step 1: 检查集合是否存在
+    const collections = await mongoose.connection.db
+      .listCollections()
+      .toArray();
+    const collectionNames = collections.map((col) => col.name);
+
+    if (!collectionNames.includes(collection)) {
+      // 如果集合不存在，返回 404 错误
+      return res.status(404).json({
+        message: `Collection '${collection}' does not exist`,
+        data: [],
+      });
+    }
+    // Step 2: Update the document
+    const _id = doc._id;
+    const newDoc = doc;
+    delete newDoc._id;
+
+    // console.log("Original _id:", doc._id); // 检查 doc._id 的原始值
+    // console.log("ObjectId format:", new mongoose.Types.ObjectId(doc._id)); // 检查转换后的 ObjectId
+
+    const result = await mongoose.connection.db
+      .collection(collection)
+      .updateOne(
+        // Use the provided filter to find the document
+        { _id: new mongoose.Types.ObjectId(_id) }, // 查询条件：根据 _id 查找文档
+        { $set: newDoc }
+      );
+
+    // Step 3: Send a success response
+    res.status(200).json({
+      message: "Document updated successfully",
+      data: result,
+    });
+  } catch (error) {
+    // Handle any errors that may occur
+    console.error("Error updating document:", error);
+    res.status(500).json({
+      message: "Error updating document",
+      error: error.message,
+    });
   }
 };

@@ -1,11 +1,23 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useParams } from "react-router-dom";
+import { useEffect } from "react";
 
-import { addField, getAllFields, addDoc, getAllDocs } from "../api/table";
+import {
+  addField,
+  getAllFields,
+  addDoc,
+  getAllDocs,
+  updateDoc,
+} from "../api/table";
 
 import CSTable from "../components/CSTable";
 
+import { FloatButton } from "antd";
+import { EditOutlined, EditTwoTone, HomeOutlined } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
+
 export default function MoneyTable() {
+  const navigate = useNavigate();
   //添加字段的弹窗的开关
   const [showModal, setShowModal] = useState(false);
 
@@ -27,9 +39,15 @@ export default function MoneyTable() {
   //从url获取collectionName
   const { name } = useParams();
 
+  //
+  const [showEdit, setShowEdit] = useState(false);
+
   const handleOpenModal = () => setShowModal(true);
   const handleCloseModal = () => setShowModal(false);
 
+  const [editIndex, setEditIndex] = useState({ field: "", docIndex: "" });
+
+  const [newEditValue, setNewEditValue] = useState("");
   //添加field
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -76,7 +94,7 @@ export default function MoneyTable() {
     try {
       //对后端传过来的数据进行处理
 
-      const { data } = await getAllDocs(name);
+      const { data } = await getAllDocs(name, "asc", "Buy Date");
       setDocs(data.data);
     } catch (error) {
       console.error("Error fetching docs:", error);
@@ -124,10 +142,34 @@ export default function MoneyTable() {
     setInputValues(newInputValues);
   };
 
+  const clickEditCell = (docIndex, field) => {
+    const newIndex = {};
+    newIndex.docIndex = docIndex;
+    newIndex.field = field;
+    console.log(newIndex);
+    setEditIndex(newIndex);
+    setShowEdit(false);
+  };
+  async function handleEditCell(docIndex, field) {
+    const newDoc = docs[docIndex];
+
+    newDoc[field] = newEditValue;
+    console.log(newDoc);
+    await updateDoc({
+      collection: name,
+      doc: newDoc,
+    });
+    fetchDocs();
+
+    //关闭编辑输入框
+    setEditIndex({ field: "", docIndex: "" });
+    setNewEditValue("");
+  }
+
   return (
     <div className="min-h-screen min-w-screen  bg-gradient-to-r from-green-100 to-white flex  justify-center  border-4 flex-col">
       {/* 表格组*/}
-      <div className="flex flex-row max-w-full px-10 ">
+      <div className="flex flex-row max-w-full px-10 mt-28">
         {/* 主表格 */}
         <div className="table w-full max-w-full max-h-[500px] overflow-auto shadow-lg  bg-white">
           {/* 表格头 */}
@@ -144,6 +186,7 @@ export default function MoneyTable() {
             </div>
           </div>
 
+          {/* //docs是数组，doc是对象 */}
           {/* 表格行 */}
           <div className="table-row-group overflow-x-auto">
             {docs.length > 0 &&
@@ -152,21 +195,55 @@ export default function MoneyTable() {
                   {allFields.map((field, index) => (
                     <div
                       key={index}
-                      className="table-cell p-3 border-gray-300 text-center border-y-2 whitespace-nowrap overflow-hidden"
+                      className="table-cell p-3 border-gray-300 text-center border-y-2 whitespace-nowrap overflow-hidden "
                     >
-                      <h2 className="">{doc[field]}</h2>{" "}
+                      {!(
+                        editIndex.field === field &&
+                        editIndex.docIndex === docIndex
+                      ) ? (
+                        <h2 className="">
+                          {doc[field]}{" "}
+                          {showEdit && (
+                            <EditTwoTone
+                              twoToneColor="#a6a6a6"
+                              onClick={() => {
+                                clickEditCell(docIndex, field);
+                              }}
+                            />
+                          )}
+                        </h2>
+                      ) : (
+                        <div>
+                          <input
+                            className=" w-full max-w-full p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 resize-none whitespace-nowrap"
+                            placeholder="Please input new Value"
+                            value={newEditValue}
+                            rows="1"
+                            style={{
+                              overflow: "hidden", // 隐藏滚动条
+                            }}
+                            onChange={(e) => setNewEditValue(e.target.value)}
+                          ></input>
+                          <div className="flex flex-row justify-between">
+                            <div
+                              onClick={() =>
+                                setEditIndex({ field: "", docIndex: "" })
+                              }
+                              className="w-10 h-10  text-white text-2xl flex items-center justify-center rounded-full cursor-pointer transition-transform duration-300 ease-in-out hover:scale-110"
+                            >
+                              ❌
+                            </div>
+                            <div
+                              onClick={() => handleEditCell(docIndex, field)}
+                              className="w-10 h-10  text-white text-2xl flex items-center justify-center rounded-full cursor-pointer transition-transform duration-300 ease-in-out hover:scale-110"
+                            >
+                              ✔
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
-
-                  {/* 渲染空白单元格 */}
-                  {/* {Array.from({ length: allFields.length - item.doc.length }).map(
-                  (_, index) => (
-                    <div
-                      key={`empty-${index}`}
-                      className="table-cell p-3 border-gray-300 text-center border-y-2"
-                    ></div>
-                  )
-                )} */}
                 </div>
               ))}
 
@@ -179,50 +256,57 @@ export default function MoneyTable() {
                     key={index}
                   >
                     <div className="flex justify-center items-center">
-                      {item.toLowerCase().includes("date") ? (
-                        <input
-                          type="date"
-                          className="  w-full max-w-fit p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                          value={inputValues[index]}
-                          onChange={(e) =>
-                            handleInputChange(index, e.target.value)
-                          }
-                        />
-                      ) : !(
-                          item.toLowerCase().includes("price") ||
-                          item.toLowerCase().includes("income") ||
-                          item.toLowerCase().includes("amount")
-                        ) ? (
-                        <textarea
-                          className=" w-full max-w-full p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 resize-none whitespace-nowrap"
-                          placeholder="Please input"
-                          rows="1"
-                          onInput={(e) => {
-                            e.target.style.height = "auto"; // 重置高度
-                            e.target.style.height = `${e.target.scrollHeight}px`; // 设置为内容高度
-                          }}
-                          style={{
-                            overflow: "hidden", // 隐藏滚动条
-                          }}
-                          value={inputValues[index]} // 绑定输入框的值
-                          onChange={(e) =>
-                            handleInputChange(index, e.target.value)
-                          } // 更新状态
-                        ></textarea>
-                      ) : (
-                        <input
-                          type="number"
-                          className="text-xl font-semibold w-full max-w-fit p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                          value={inputValues[index]}
-                          onChange={(e) =>
-                            handleInputChange(
-                              index,
-                              e.target.value,
-                              allFields[index]
-                            )
-                          }
-                        />
-                      )}
+                      {
+                        item.toLowerCase().includes("date") ? (
+                          <input
+                            type="date"
+                            className="  w-full max-w-fit p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                            value={inputValues[index]}
+                            onChange={(e) =>
+                              handleInputChange(index, e.target.value)
+                            }
+                          />
+                        ) : (
+                          // !(
+                          //     item.toLowerCase().includes("price") ||
+                          //     item.toLowerCase().includes("income") ||
+                          //     item.toLowerCase().includes("amount")
+                          //   ) ?
+                          <textarea
+                            className=" w-full max-w-full p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 resize-none whitespace-nowrap"
+                            placeholder="Please input"
+                            rows="1"
+                            style={{
+                              overflow: "hidden", // 隐藏滚动条
+                            }}
+                            value={inputValues[index]} // 绑定输入框的值
+                            onChange={(e) => {
+                              e.target.style.height = "auto"; // 重置高度
+                              e.target.style.height = `${e.target.scrollHeight}px`; // 设置为内容高度
+                              handleInputChange(index, e.target.value);
+                              e.target.value = e.target.value.replace(
+                                /\n/g,
+                                ""
+                              );
+                              console.log(e.target.value);
+                            }} // 更新状态
+                          ></textarea>
+                        )
+                        // : (
+                        //   <input
+                        //     type="number"
+                        //     className=" w-full max-w-fit p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                        //     value={inputValues[index]}
+                        //     onChange={(e) =>
+                        //       handleInputChange(
+                        //         index,
+                        //         e.target.value,
+                        //         allFields[index]
+                        //       )
+                        //     }
+                        //   />
+                        // )
+                      }
                     </div>
                   </div>
                 ))}
@@ -267,8 +351,24 @@ export default function MoneyTable() {
         )}
       </div>
 
+      <div className="absolute top-10 left-6" onClick={() => navigate("/")}>
+        {" "}
+        <button className="px-4 py-3 mx-2 bg-green-500 text-white font-semibold rounded-full shadow-md hover:bg-green-600 transition duration-300">
+          {" "}
+          <HomeOutlined />
+        </button>
+      </div>
+
       {/* 添加列名按钮 */}
       <div className="absolute top-10 right-6">
+        <button
+          onClick={() => {
+            setShowEdit(!showEdit);
+          }}
+          className="px-6 py-3 mx-2 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition duration-300"
+        >
+          Edit
+        </button>
         <button
           onClick={handleOpenModal}
           className="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition duration-300"

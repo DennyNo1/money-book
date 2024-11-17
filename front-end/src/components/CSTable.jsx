@@ -25,7 +25,6 @@ export default function CSTable({ docs }) {
 
       const totalSellPrice = Number(doc["Total Sell Price"]) || 0;
 
-      console.log(amount,price,rentalIncome,totalSellPrice)
       //专门装数据的数组
       const array = [];
 
