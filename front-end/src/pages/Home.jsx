@@ -5,11 +5,13 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Card, Col, Row, Statistic } from "antd";
 import { ArrowDownOutlined, ArrowUpOutlined } from "@ant-design/icons";
-import { getCSMarketIndex } from "../api";
+import { getCSMarketIndex, getStockIndex } from "../api";
+import { Spin } from "antd";
 
 function Home() {
   const navigate = useNavigate();
   const [CSIndex, setCSIndex] = useState([]);
+  const [StockIndex, setStockIndex] = useState({});
   const handleClick = () => {
     navigate("/moneybook");
     // 在这里添加点击事件的处理逻辑
@@ -30,8 +32,15 @@ function Home() {
     const response = await getCSMarketIndex();
     setCSIndex(formatDate(response.data.data));
   };
+  const fetchStockIndex = async () => {
+    const response = await getStockIndex();
+    // console.log(response.data);
+    setStockIndex(response.data);
+  };
+
   useEffect(() => {
     fetchCSIndex();
+    fetchStockIndex();
   }, []);
 
   return (
@@ -56,28 +65,52 @@ function Home() {
           <Row gutter={16}>
             <Col span={12}>
               <Card bordered={false}>
-                <Statistic
-                  title="饰品指数"
-                  value={CSIndex[0]}
-                  precision={2}
-                  valueStyle={{
-                    color: "#3f8600",
-                  }}
-                  prefix={<ArrowUpOutlined />}
-                />
+                {CSIndex.length > 0 ? (
+                  <Statistic
+                    title="饰品指数"
+                    value={CSIndex[0]}
+                    precision={2}
+                  />
+                ) : (
+                  <Spin></Spin>
+                )}
               </Card>
             </Col>
             <Col span={12}>
               <Card bordered={false}>
-                <Statistic
-                  title="市场热度"
-                  value={CSIndex[1]}
-                  precision={2}
-                  valueStyle={{
-                    color: "#cf1322",
-                  }}
-                  prefix={<ArrowDownOutlined />}
-                />
+                {CSIndex.length > 0 ? (
+                  <Statistic
+                    title="市场热度"
+                    value={CSIndex[1]}
+                    precision={2}
+                  />
+                ) : (
+                  <Spin></Spin>
+                )}
+              </Card>
+            </Col>
+          </Row>
+          <Row gutter={16} className="mt-4">
+            <Col span={12}>
+              <Card bordered={false}>
+                {CSIndex.length > 0 ? (
+                  <Statistic
+                    title="纳斯达克100"
+                    value={StockIndex.nasdaq100Index}
+                    precision={2}
+                  />
+                ) : (
+                  <Spin></Spin>
+                )}
+              </Card>
+            </Col>
+            <Col span={12}>
+              <Card bordered={false}>
+                {CSIndex.length > 0 ? (
+                  <Statistic title="标普500" value={StockIndex.sp500Index} precision={2} />
+                ) : (
+                  <Spin></Spin>
+                )}
               </Card>
             </Col>
           </Row>

@@ -9,3 +9,12 @@ export const getCSMarketIndex = async () => {
     throw error; // 可以在组件中处理错误
   }
 };
+export const getStockIndex = async () => {
+  try {
+    const response = await axios.get(API_URL + "/index/stock");
+    return response; // 返回新添加的书籍信息或状态
+  } catch (error) {
+    console.error("Error get all books:", error);
+    throw error; // 可以在组件中处理错误
+  }
+};
