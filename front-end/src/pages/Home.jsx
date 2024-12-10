@@ -90,7 +90,8 @@ function Home() {
               </Card>
             </Col>
           </Row>
-          <Row gutter={16} className="mt-4">
+          {/* 有了微软财经，就不需要了 */}
+          {/* <Row gutter={16} className="mt-4">
             <Col span={12}>
               <Card bordered={false}>
                 {CSIndex.length > 0 ? (
@@ -113,7 +114,7 @@ function Home() {
                 )}
               </Card>
             </Col>
-          </Row>
+          </Row> */}
         </div>
       </div>
     </div>

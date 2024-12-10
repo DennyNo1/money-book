@@ -11,6 +11,7 @@ import {
 } from "../api/table";
 
 import CSTable from "../components/CSTable";
+import CashTable from "../components/CashTable";
 
 import { FloatButton } from "antd";
 import { EditOutlined, EditTwoTone, HomeOutlined } from "@ant-design/icons";
@@ -166,6 +167,10 @@ export default function MoneyTable() {
     setNewEditValue("");
   }
 
+  const tableComponents = {
+    CS: <CSTable docs={docs} />,
+    Cash: <CashTable docs={docs} />,
+  };
   return (
     <div className="min-h-screen min-w-screen  bg-gradient-to-r from-green-100 to-white flex  justify-center  border-4 flex-col">
       {/* 表格组*/}
@@ -314,10 +319,7 @@ export default function MoneyTable() {
             )}
           </div>
         </div>{" "}
-        <div className="ml-4">
-          {" "}
-          <CSTable docs={docs} />
-        </div>
+        <div className="ml-4">{tableComponents[name]}</div>
       </div>
 
       {/* 按钮组 */}

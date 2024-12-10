@@ -76,11 +76,10 @@ function MoneyBook() {
           <div
             className="border w-48 h-64 bg-white shadow-lg rounded-md p-4 flex flex-col justify-between items-center border-gray-300 transition-transform duration-300 transform hover:scale-105 relative"
             key={index}
+            onClick={() => navigate(`/moneybook/${book.name}`)}
           >
-            <h2
-              onClick={() => navigate(`/moneybook/${book.name}`)}
-              className="font-semibold text-gray-800 cursor-pointer"
-            >
+            <img src="/cover.png"></img>
+            <h2 className="font-semibold text-gray-800 cursor-pointer">
               {book.name}
             </h2>
             {/* 删除按钮 */}

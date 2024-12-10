@@ -36,8 +36,8 @@ const csMarketApi = async () => {
     return element ? element.textContent.trim() : "数据未找到";
   });
 
-  console.log("抓取到的最终数据:", text);
-  console.log("抓取到的最终数据:", text1);
+  // console.log("抓取到的最终数据:", text);
+  // console.log("抓取到的最终数据:", text1);
   await browser.close();
   return [text, text1];
 };
@@ -96,13 +96,15 @@ async function googleSearch(searchWord) {
     const selector = "span.IsqQVc.NprOob.wT3VGc"; // 数值的 CSS 选择器
     await page.waitForSelector(selector, { timeout: 10000 });
     const index = await page.$eval(selector, (el) => el.textContent.trim());
-    await browser.close();
+
     return index;
     // console.log(`当前纳斯达克指数: ${nasdaqIndex}`);
   } catch (error) {
     // console.error("未找到纳斯达克指数信息:", error);
-    await browser.close();
+
     return error;
+  } finally {
+    await browser.close();
   }
 }
 
