@@ -6,6 +6,7 @@ import MoneyTable from "./pages/MoneyTable.jsx";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
+import Code from "./pages/Code.jsx";
 //import "./App.css"; // 引入样式文件（如果有）
 
 //App.js 是作为根组件，其他组件通常会在其中被嵌套。
@@ -23,6 +24,7 @@ const App = () => {
           <Route path="/moneybook/:name" element={<MoneyTable />} />{" "}
           <Route path="/login" element={<Login />}></Route>
           <Route path="/register" element={<Register />}></Route>
+          <Route path="/code" element={<Code />}></Route>
         </Routes>
       </BrowserRouter>
     </div>

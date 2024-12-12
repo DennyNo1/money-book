@@ -12,10 +12,7 @@ function Home() {
   const navigate = useNavigate();
   const [CSIndex, setCSIndex] = useState([]);
   const [StockIndex, setStockIndex] = useState({});
-  const handleClick = () => {
-    navigate("/moneybook");
-    // 在这里添加点击事件的处理逻辑
-  };
+
   function formatDate(data) {
     console.log(data);
     //提取第一个字符串中的饰品指数数值
@@ -42,14 +39,17 @@ function Home() {
     fetchCSIndex();
     fetchStockIndex();
   }, []);
-
+  const handleClick = (destination) => {
+    navigate(destination);
+    // 在这里添加点击事件的处理逻辑
+  };
   return (
     <div>
       <div className="flex justify-center items-center h-screen w-screen bg-gradient-to-r from-green-100 to-white">
-        <div className="w-1/4 h-1/4 grid grid-cols-2 gap-4 ">
+        <div className="w-auto h-auto grid grid-cols-3 gap-4  justify-center items-center">
           <div
-            onClick={handleClick}
-            className="border-2 w-full h-full flex justify-center items-center rounded-lg border-green-500 transition-transform duration-300 transform hover:scale-105"
+            onClick={() => handleClick("/moneybook")}
+            className="border-2 w-48 h-48  flex justify-center items-center rounded-lg border-green-500 transition-transform duration-300 transform hover:scale-105"
           >
             <img
               src="/money.jfif"
@@ -57,7 +57,17 @@ function Home() {
               onLoad={(e) => (e.target.style.opacity = 1)}
             />
           </div>
-          <div className="border-2 w-full h-full flex justify-center items-center rounded-lg border-green-500 text-xl font-semibold transition-transform duration-300 transform hover:scale-105 bg-white">
+          <div
+            onClick={() => handleClick("/code")}
+            className="border-2 w-48 h-48 flex justify-center items-center rounded-lg border-green-500 transition-transform duration-300 transform hover:scale-105 bg-white"
+          >
+            <img
+              src="/code.svg"
+              className="w-full h-full rounded-lg transition-opacity duration-500 opacity-0"
+              onLoad={(e) => (e.target.style.opacity = 1)}
+            />
+          </div>
+          <div className="border-2 w-48 h-48 flex justify-center items-center rounded-lg border-green-500 text-xl font-semibold transition-transform duration-300 transform hover:scale-105 bg-white">
             Coming Soon!
           </div>
         </div>

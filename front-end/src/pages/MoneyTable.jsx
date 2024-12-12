@@ -12,6 +12,7 @@ import {
 
 import CSTable from "../components/CSTable";
 import CashTable from "../components/CashTable";
+import BackHome from "../components/BackHome";
 
 import { FloatButton } from "antd";
 import { EditOutlined, EditTwoTone, HomeOutlined } from "@ant-design/icons";
@@ -353,13 +354,15 @@ export default function MoneyTable() {
         )}
       </div>
 
-      <div className="absolute top-10 left-6" onClick={() => navigate("/")}>
+      {/* 回主页按钮 */}
+      {/* <div className="absolute top-10 left-6" onClick={() => navigate("/")}>
         {" "}
         <button className="px-4 py-3 mx-2 bg-green-500 text-white font-semibold rounded-full shadow-md hover:bg-green-600 transition duration-300">
           {" "}
           <HomeOutlined />
         </button>
-      </div>
+      </div> */}
+      <BackHome></BackHome>
 
       {/* 添加列名按钮 */}
       <div className="absolute top-10 right-6">

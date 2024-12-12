@@ -4,6 +4,7 @@ const connectToDatabase = require("./database");
 const bookRoutes = require("./routes/bookRoutes");
 const tableRoutes = require("./routes/tableRoutes");
 const apiRoutes = require("./routes/apiRoutes");
+const codeRoutes = require("./routes/codeRoutes");
 const cors = require("cors"); // 引入 cors 中间件
 require("dotenv").config();
 
@@ -20,6 +21,7 @@ app.use(cors());
   app.use("/api", bookRoutes);
   app.use("/api", tableRoutes);
   app.use("/api", apiRoutes);
+  app.use("/api", codeRoutes);
 
   // 启动服务器
   app.listen(process.env.PORT || 5000, () => {
