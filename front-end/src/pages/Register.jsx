@@ -4,24 +4,31 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import axios from "axios";
+
+import { register } from "../api/user";
 
 function Register() {
   const navigate = useNavigate(); //hook函数，用于导航
+
+  //用于双向绑定的useState hook函数
+  //表单数据
+  const [values, setValues] = useState({
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
   //处理提交
   const handleSubmit = async (event) => {
     event.preventDefault();
 
     if (handleValidation()) {
       const { password, username, email } = values;
+      const user = { password: password, email: email, username: username };
       //console.log("ok");
       //它这里并没有为前端发送请求独立出一个方法，我觉得不好。
-      //   const { data } = await axios.post(registerRoute, {
-      //     username,
-      //     email,
-      //     password,
-      //   });
-      const data = {};
+      const { data } = await register(user);
+
       if (data.status === false) {
         toast.error(data.msg, toastOptions);
       } else {
@@ -35,15 +42,6 @@ function Register() {
   //{...values}: 这是对象展开运算符（spread operator）。它会将 values 对象中的所有键值对复制到一个新的对象中。这样做的目的是保留现有的状态值，同时只更新特定的键。
   //event.target.name 通常是你在 <input> 或其他表单元素上设置的 name 属性
   //event.target.value: 这是用户输入或选择的当前值
-
-  //用于双向绑定的useState hook函数
-  //表单数据
-  const [values, setValues] = useState({
-    username: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-  });
 
   function handleChange(event) {
     console.log(event);
@@ -88,7 +86,7 @@ function Register() {
         <form onSubmit={(event) => handleSubmit(event)}>
           <div className="brand">
             <img src="/logo.svg" alt="Logo"></img>
-            <h1>snappy</h1>
+            <h1>money-book</h1>
           </div>
           <input
             type="text"
@@ -132,7 +130,7 @@ const FormContainer = styled.div`
   justify-content: center;
   gap: 1rem;
   align-items: center;
-  background-color: #131324;
+  background-color: #f0fff4; /* 浅绿色背景 */
   .brand {
     display: flex;
     align-items: center;
@@ -142,34 +140,36 @@ const FormContainer = styled.div`
       height: 5rem;
     }
     h1 {
-      color: white;
+      color: #2f855a; /* 深绿色文字 */
       text-transform: uppercase;
     }
   }
 
   form {
+    background-color: #f0fff4; /* 浅绿色背景 */
     display: flex;
     flex-direction: column;
     gap: 2rem;
-    background-color: #00000076;
+
     border-radius: 2rem;
     padding: 3rem 5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 增加阴影效果 */
   }
   input {
-    background-color: transparent;
+    background-color: #ffffff; /* 白色背景 */
     padding: 1rem;
-    border: 0.1rem solid #4e0eff;
+    border: 0.1rem solid #38a169; /* 绿色边框 */
     border-radius: 0.4rem;
-    color: white;
+    color: #2f855a; /* 深绿色文字 */
     width: 100%;
     font-size: 1rem;
     &:focus {
-      border: 0.1rem solid #997af0;
+      border: 0.1rem solid #48bb78; /* 浅绿色边框 */
       outline: none;
     }
   }
   button {
-    background-color: #4e0eff;
+    background-color: #38a169; /* 按钮绿色背景 */
     color: white;
     padding: 1rem 2rem;
     border: none;
@@ -179,16 +179,19 @@ const FormContainer = styled.div`
     font-size: 1rem;
     text-transform: uppercase;
     &:hover {
-      background-color: #4e0eff;
+      background-color: #2f855a; /* 按钮深绿色背景 */
     }
   }
   span {
-    color: white;
+    color: #2f855a; /* 深绿色文字 */
     text-transform: uppercase;
     a {
-      color: #4e0eff;
+      color: #38a169; /* 绿色链接 */
       text-decoration: none;
       font-weight: bold;
+      &:hover {
+        text-decoration: underline; /* 鼠标悬停下划线 */
+      }
     }
   }
 `;

@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import axios from "axios";
+import {login} from "../api/user";
 
 function Login() {
   const navigate = useNavigate(); //hook函数，用于导航
@@ -13,14 +13,9 @@ function Login() {
 
     if (handleValidation()) {
       const { password, username } = values;
-      //console.log("ok");
-      //它这里并没有为前端发送请求独立出一个方法，我觉得不好。
-      //   const { data } = await axios.post(loginRoute, {
-      //     username,
+      const user = { password: password, username: username };
 
-      //     password,
-      //   });
-      const data = {};
+      const data = await login(user);
       if (data.status === false) {
         toast.error(data.msg, toastOptions);
       } else {
@@ -76,11 +71,14 @@ function Login() {
   }, []);
   return (
     <>
-      <FormContainer>
-        <form onSubmit={(event) => handleSubmit(event)}>
+      <FormContainer className="bg-gradient-to-r from-green-100 to-white">
+        <form
+          onSubmit={(event) => handleSubmit(event)}
+          className="bg-green-100"
+        >
           <div className="brand">
             <img src="logo.svg" alt="Logo"></img>
-            <h1>snappy</h1>
+            <h1>money-book</h1>
           </div>
           <input
             type="text"
@@ -114,7 +112,7 @@ const FormContainer = styled.div`
   justify-content: center;
   gap: 1rem;
   align-items: center;
-  background-color: #131324;
+
   .brand {
     display: flex;
     align-items: center;
@@ -124,7 +122,7 @@ const FormContainer = styled.div`
       height: 5rem;
     }
     h1 {
-      color: white;
+      color: #2f855a; /* 深绿色 */
       text-transform: uppercase;
     }
   }
@@ -133,25 +131,26 @@ const FormContainer = styled.div`
     display: flex;
     flex-direction: column;
     gap: 2rem;
-    background-color: #00000076;
+    background-color: #f0fff4; /* 浅绿色背景 */
     border-radius: 2rem;
     padding: 3rem 5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   }
   input {
-    background-color: transparent;
+    background-color: #ffffff; /* 白色背景 */
     padding: 1rem;
-    border: 0.1rem solid #4e0eff;
+    border: 0.1rem solid #38a169; /* 绿色边框 */
     border-radius: 0.4rem;
-    color: white;
+    color: #2f855a; /* 深绿色文字 */
     width: 100%;
     font-size: 1rem;
     &:focus {
-      border: 0.1rem solid #997af0;
+      border: 0.1rem solid #48bb78; /* 浅绿色边框 */
       outline: none;
     }
   }
   button {
-    background-color: #4e0eff;
+    background-color: #38a169; /* 绿色按钮背景 */
     color: white;
     padding: 1rem 2rem;
     border: none;
@@ -161,16 +160,19 @@ const FormContainer = styled.div`
     font-size: 1rem;
     text-transform: uppercase;
     &:hover {
-      background-color: #4e0eff;
+      background-color: #2f855a; /* 深绿色背景 */
     }
   }
   span {
-    color: white;
+    color: #2f855a; /* 深绿色文字 */
     text-transform: uppercase;
     a {
-      color: #4e0eff;
+      color: #38a169; /* 绿色链接 */
       text-decoration: none;
       font-weight: bold;
+      &:hover {
+        text-decoration: underline;
+      }
     }
   }
 `;

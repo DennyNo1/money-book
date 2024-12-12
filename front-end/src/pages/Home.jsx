@@ -45,30 +45,27 @@ function Home() {
   };
   return (
     <div>
-      <div className="flex justify-center items-center h-screen w-screen bg-gradient-to-r from-green-100 to-white">
+      <div className="flex justify-center items-center h-screen w-screen bg-gradient-to-r from-green-100 to-white ">
         <div className="w-auto h-auto grid grid-cols-3 gap-4  justify-center items-center">
           <div
             onClick={() => handleClick("/moneybook")}
-            className="border-2 w-48 h-48  flex justify-center items-center rounded-lg border-green-500 transition-transform duration-300 transform hover:scale-105"
+            className="border-2 w-48 h-48 flex justify-center items-center rounded-full border- transition-transform duration-300 transform hover:scale-105"
           >
             <img
-              src="/money.jfif"
-              className="w-full h-full rounded-lg transition-opacity duration-500 opacity-0"
+              src="/money.svg"
+              className="w-full h-full rounded-full transition-opacity duration-500 opacity-0"
               onLoad={(e) => (e.target.style.opacity = 1)}
             />
           </div>
           <div
             onClick={() => handleClick("/code")}
-            className="border-2 w-48 h-48 flex justify-center items-center rounded-lg border-green-500 transition-transform duration-300 transform hover:scale-105 bg-white"
+            className="border-2 w-48 h-48 flex justify-center items-center rounded-full border- transition-transform duration-300 transform hover:scale-105"
           >
             <img
               src="/code.svg"
               className="w-full h-full rounded-lg transition-opacity duration-500 opacity-0"
               onLoad={(e) => (e.target.style.opacity = 1)}
             />
-          </div>
-          <div className="border-2 w-48 h-48 flex justify-center items-center rounded-lg border-green-500 text-xl font-semibold transition-transform duration-300 transform hover:scale-105 bg-white">
-            Coming Soon!
           </div>
         </div>
         <div className="absolute top-6 left-0 right-0 w-1/3">

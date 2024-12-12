@@ -1,4 +1,4 @@
-const { addDoc, getAllDocs } = require("../service/commonService");
+const { addDoc, getAllDocs } = require("../controller/codeController");
 const express = require("express");
 const router = express.Router();
 router.post("/code/doc", addDoc);
