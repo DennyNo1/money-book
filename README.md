@@ -34,3 +34,4 @@ cd .\back-end\
 npm install
 npm dev
 ```
+在./back-end/.env中配置数据库连接信息
