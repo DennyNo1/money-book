@@ -25,4 +25,5 @@ yarn-debug.log*
 yarn-error.log*
 
 # 忽略 back-end/.env 文件
-back-end/.env
+/back-end/.env
+
