@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { addBook, getAllBooks, deleteBook } from "../api/book";
 import { useNavigate } from "react-router-dom";
 import { Outlet } from "react-router-dom";
+import BackHome from "../components/BackHome";
 function MoneyBook() {
   const navigate = useNavigate(); //路由跳转
   const [showModal, setShowModal] = useState(false);
@@ -78,8 +79,8 @@ function MoneyBook() {
             key={index}
             onClick={() => navigate(`/moneybook/${book.name}`)}
           >
-            <img src="/cover.png"></img>
-            <h2 className="font-semibold text-gray-800 cursor-pointer">
+            <img src="/cover.svg"></img>
+            <h2 className="font-semibold text-gray-800 cursor-pointer my-8">
               {book.name}
             </h2>
             {/* 删除按钮 */}
@@ -97,7 +98,7 @@ function MoneyBook() {
         ))}
       </div>
 
-      {/* 按钮区域 */}
+      {/* 新增书本 */}
       <div className="absolute top-10 right-6">
         <button
           onClick={handleOpenModal}
@@ -163,6 +164,7 @@ function MoneyBook() {
           </div>
         </div>
       )}
+      <BackHome></BackHome>
     </div>
   );
 }

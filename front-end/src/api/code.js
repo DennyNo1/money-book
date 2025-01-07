@@ -1,9 +1,10 @@
-import axios from "axios";
+import apiClient from "./apiClient";
 
 const API_URL = "http://localhost:5000/api"; // 替换为你的后端地址
 export const addDoc = async ({ collection, doc }) => {
   try {
-    const response = await axios.post(API_URL + "/code/doc", {
+    doc.date = new Date().toISOString();
+    const response = await apiClient.post(API_URL + "/code/doc", {
       collection,
       doc,
     });
@@ -16,7 +17,7 @@ export const addDoc = async ({ collection, doc }) => {
 
 export const getAllDocs = async (collection, order, orderBy) => {
   try {
-    const response = await axios.get(API_URL + `/code/docs`, {
+    const response = await apiClient.get(API_URL + `/code/docs`, {
       params: {
         collection: collection,
         order: order,

@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import {login} from "../api/user";
+import { login } from "../api/user";
 
 function Login() {
   const navigate = useNavigate(); //hook函数，用于导航
@@ -15,13 +15,14 @@ function Login() {
       const { password, username } = values;
       const user = { password: password, username: username };
 
-      const data = await login(user);
-      if (data.status === false) {
-        toast.error(data.msg, toastOptions);
-      } else {
+      const response = await login(user);
+      console.log(response);
+      if (response.status === 200) {
         //登录成功把用户信息放在localStorage
-        localStorage.setItem("chat-app-user", JSON.stringify(data.user));
+        localStorage.setItem("token", response.data.token);
         navigate("/");
+      } else {
+        toast.error(response.msg, toastOptions);
       }
     }
   };
@@ -57,18 +58,13 @@ function Login() {
     if (username.length <= 3) {
       toast.error("Username should be longer than 3 characters.", toastOptions);
       return false;
-    } else if (password.length <= 8) {
-      toast.error("Password should be longer than 8 characters.", toastOptions);
+    } else if (password.length <6) {
+      toast.error("Password should be  6 characters at least. ", toastOptions);
       return false;
     }
     return true;
   }
-  //他这里的逻辑是，注册完反而不用登录了，直接算完成登录了。比较少见。
-  useEffect(() => {
-    if (localStorage.getItem("chat-app-user")) {
-      navigate("/");
-    }
-  }, []);
+
   return (
     <>
       <FormContainer className="bg-gradient-to-r from-green-100 to-white">
@@ -78,7 +74,7 @@ function Login() {
         >
           <div className="brand">
             <img src="logo.svg" alt="Logo"></img>
-            <h1>money-book</h1>
+            <h1>money book</h1>
           </div>
           <input
             type="text"

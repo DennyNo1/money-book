@@ -1,9 +1,8 @@
-import axios from "axios";
+import apiClient from "./apiClient";
 
-const API_URL = "http://localhost:5000/api"; // 替换为你的后端地址
 export const addField = async ({ collection, field }) => {
   try {
-    const response = await axios.post(API_URL + "/book/field", {
+    const response = await apiClient.post("/book/field", {
       collection,
       field,
     });
@@ -15,8 +14,8 @@ export const addField = async ({ collection, field }) => {
 };
 export const getAllFields = async (collection) => {
   try {
-    const response = await axios.get(
-      API_URL + `/book/fields?collection=${collection}`
+    const response = await apiClient.get(
+      `/book/fields?collection=${collection}`
     );
     return response;
   } catch (error) {
@@ -27,7 +26,7 @@ export const getAllFields = async (collection) => {
 
 export const addDoc = async ({ collection, doc }) => {
   try {
-    const response = await axios.post(API_URL + "/book/doc", {
+    const response = await apiClient.post("/book/doc", {
       collection,
       doc,
     });
@@ -40,7 +39,7 @@ export const addDoc = async ({ collection, doc }) => {
 
 export const getAllDocs = async (collection, order, orderBy) => {
   try {
-    const response = await axios.get(API_URL + `/book/docs`, {
+    const response = await apiClient.get(`/book/docs`, {
       params: {
         collection: collection,
         order: order,
@@ -56,7 +55,7 @@ export const getAllDocs = async (collection, order, orderBy) => {
 
 export const updateDoc = async ({ collection, doc }) => {
   try {
-    const response = await axios.patch(API_URL + "/book/doc", {
+    const response = await apiClient.patch("/book/doc", {
       collection,
       doc,
     });

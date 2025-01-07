@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { EditOutlined, EditTwoTone, HomeOutlined } from "@ant-design/icons";
 import BackHome from "../components/BackHome";
 import { addDoc, getAllDocs } from "../api/code";
+import { generateRandomPassword } from "../utils/Password";
+import { Button, Modal } from "antd";
 export default function Code() {
   //
   const [allFields, setAllFields] = useState([
@@ -36,6 +38,9 @@ export default function Code() {
     setInputValues(newInputValues);
   };
   const [showInput, setShowInput] = useState(false);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [randomPassword, setRandomPassword] = useState("");
   async function handleEditCell(docIndex, field) {
     // const newDoc = docs[docIndex];
     // newDoc[field] = newEditValue;
@@ -96,10 +101,49 @@ export default function Code() {
   useEffect(() => {
     fetchDocs();
   }, []);
+
+  const showModal = () => {
+    setIsModalOpen(true);
+  };
+  const handleOk = () => {
+    setIsModalOpen(false);
+    const currentTime = new Date().toISOString(); // 获取当前时间的 ISO 格式字符串
+    localStorage.setItem(currentTime, randomPassword); // 用当前时间作为键存储密码
+  };
+  const handleCancel = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleGeneratePassword = () => {
+    // 生成随机密码
+    const password = generateRandomPassword();
+    setRandomPassword(password);
+    // 显示模态框
+    showModal();
+  };
+
   return (
-    <div className="min-h-screen min-w-screen  bg-gradient-to-r from-green-100 to-white flex  justify-center  border-4 flex-col">
+    <div className="h-screen   w-screnn bg-gradient-to-r from-green-100 to-white flex  justify-center  border-4 flex-col">
+      <Modal
+        title="Your new password"
+        open={isModalOpen}
+        onOk={handleOk}
+        onCancel={handleCancel}
+        okText="Save"
+      >
+        <p>{randomPassword}</p>
+      </Modal>
       {/* 主表格 */}
-      <div className="table w-full max-w-full max-h-[500px] overflow-auto shadow-lg  bg-white">
+      <div className="table  w-auto h-auto overflow-auto shadow-lg  bg-white mx-20">
+        <div className="absolute top-10 right-20">
+          <button
+            onClick={handleGeneratePassword}
+            className="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition duration-300"
+          >
+            Create Random Password
+          </button>
+        </div>
+
         {/* 表格头 */}
         <div className="table-header-group bg-gradient-to-r from-green-400 to-green-600 text-white">
           <div className="table-row">
@@ -116,7 +160,7 @@ export default function Code() {
 
         {/* //docs是数组，doc是对象 */}
         {/* 表格行 */}
-        <div className="table-row-group overflow-x-auto">
+        <div className="table-row-group ">
           {docs.length > 0 &&
             docs.map((doc, docIndex) => (
               <div key={docIndex} className="table-row">
@@ -219,8 +263,8 @@ export default function Code() {
         </div>
       </div>{" "}
       {/* 按钮组 */}
-      <div className="   flex px-20 py-2">
-        <div>
+      <div className="   flex px-20 py-2 justify-between">
+        <div className="">
           {!showInput ? (
             <div
               onClick={handleAddRow}

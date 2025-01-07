@@ -8,10 +8,20 @@ import { ArrowDownOutlined, ArrowUpOutlined } from "@ant-design/icons";
 import { getCSMarketIndex, getStockIndex } from "../api";
 import { Spin } from "antd";
 
+
 function Home() {
   const navigate = useNavigate();
   const [CSIndex, setCSIndex] = useState([]);
   const [StockIndex, setStockIndex] = useState({});
+
+  //判断登录，未登录则跳转
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.warn("No token found. Redirecting to /login...");
+      navigate("/login");
+    }
+  }, [navigate]);
 
   function formatDate(data) {
     console.log(data);
@@ -37,7 +47,7 @@ function Home() {
 
   useEffect(() => {
     fetchCSIndex();
-    fetchStockIndex();
+    //fetchStockIndex();
   }, []);
   const handleClick = (destination) => {
     navigate(destination);
@@ -124,6 +134,7 @@ function Home() {
           </Row> */}
         </div>
       </div>
+
     </div>
   );
 }

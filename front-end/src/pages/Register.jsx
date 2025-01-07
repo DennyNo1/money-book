@@ -14,7 +14,7 @@ function Register() {
   //表单数据
   const [values, setValues] = useState({
     username: "",
-    email: "",
+    // email: "",
     password: "",
     confirmPassword: "",
   });
@@ -23,8 +23,16 @@ function Register() {
     event.preventDefault();
 
     if (handleValidation()) {
-      const { password, username, email } = values;
-      const user = { password: password, email: email, username: username };
+      const {
+        password,
+        username,
+        // email
+      } = values;
+      const user = {
+        password: password,
+        // email: email,
+        username: username,
+      };
       //console.log("ok");
       //它这里并没有为前端发送请求独立出一个方法，我觉得不好。
       const { data } = await register(user);
@@ -58,7 +66,12 @@ function Register() {
 
   function handleValidation() {
     //解构赋值
-    const { password, confirmPassword, username, email } = values;
+    const {
+      password,
+      confirmPassword,
+      username,
+      // email
+    } = values;
     if (password !== confirmPassword) {
       //我们一般用组件库了
       toast.error(
@@ -69,14 +82,14 @@ function Register() {
     } else if (username.length <= 3) {
       toast.error("Username should be longer than 3 characters.", toastOptions);
       return false;
-    } else if (password.length <= 8) {
-      toast.error("Password should be longer than 8 characters.", toastOptions);
-      return false;
-    } else if (email === "") {
-      //
-      toast.error("Please input valid email address", toastOptions);
+    } else if (password.length < 6) {
+      toast.error("Password should be 6 characters at least.", toastOptions);
       return false;
     }
+    //  else if (email === "") {
+    //   toast.error("Please input valid email address", toastOptions);
+    //   return false;
+    // }
     return true;
   }
 
@@ -94,12 +107,12 @@ function Register() {
             name="username"
             onChange={handleChange}
           ></input>
-          <input
+          {/* <input
             type="email"
             placeholder="Email"
             name="email"
             onChange={handleChange}
-          ></input>
+          ></input> */}
           <input
             type="password"
             placeholder="Password"

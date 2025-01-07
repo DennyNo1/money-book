@@ -4,6 +4,7 @@ const algorithm = "aes-256-cbc";
 const secretKey = process.env.SECRET_KEY;
 const iv = process.env.IV;
 const User = require("../model/userModel");
+const { generateToken } = require("../utils/jwtHelper");
 const encrypt = (text) => {
   const cipher = crypto.createCipheriv(
     algorithm,
@@ -24,6 +25,7 @@ const decrypt = (encryptedText) => {
     decipher.final(),
   ]).toString();
 };
+
 exports.login = async (req, res) => {
   console.log("login");
   try {
@@ -33,8 +35,10 @@ exports.login = async (req, res) => {
     }
     console.log(user.username);
 
-    const users = await User.find();
-    console.log(users); // 查看所有用户
+    // const users = await User.find();
+    // 查看所有用户
+    //console.log(users);
+
     //用用户名去查询
     const queryUser = await User.findOne({ username: user.username });
     if (queryUser) {
@@ -42,9 +46,11 @@ exports.login = async (req, res) => {
       const decryptedPassword = decrypt(queryUser.password);
       //比较密码
       if (decryptedPassword === user.password) {
-        return res
-          .status(200)
-          .json({ message: "login success", data: queryUser });
+        const username = queryUser.username;
+        console.log({ username });
+        const jwt = generateToken({ username });
+        console.log(jwt);
+        return res.status(200).json({ message: "login success", token: jwt });
       } else {
         return res.status(400).json({ message: "password is wrong" });
       }

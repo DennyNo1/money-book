@@ -6,11 +6,12 @@ const {
   deleteBook,
 } = require("../controller/bookController");
 
+const { verifyToken } = require("../middleware/authMiddleware");
 const router = express.Router();
 
 // 定义路由,用restful风格
-router.post("/book", addBook);
+router.post("/book", verifyToken, addBook);
 // router.get("/", () => console.log("get"));
-router.get("/books", getAllBooks);
-router.delete("/book/:name", deleteBook);
+router.get("/books", verifyToken, getAllBooks);
+router.delete("/book/:name", verifyToken, deleteBook);
 module.exports = router;
