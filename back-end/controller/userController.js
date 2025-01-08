@@ -26,6 +26,7 @@ const decrypt = (encryptedText) => {
   ]).toString();
 };
 
+//登录
 exports.login = async (req, res) => {
   console.log("login");
   try {
@@ -61,7 +62,8 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: "login error", error });
   }
 };
-//
+
+//注册
 exports.register = async (req, res) => {
   try {
     console.log("Received request");
@@ -84,3 +86,22 @@ exports.register = async (req, res) => {
     res.status(500).json({ message: "Error adding doc", error });
   }
 };
+
+//用户名重复检测
+exports.checkUsername = async (req, res) => {
+  try {
+    const { username } = req.query;
+    console.log(username);
+    if (!username) {
+      return res.status(400).json({ message: "username are required" });
+    }
+    const queryUser = await User.findOne({ username: username });
+    if (queryUser) {
+      return res.status(409).json({ message: "Username already taken" });
+    }
+    return res.status(200).json({ message: "Username is available" });
+  } catch (error) {
+    res.status(500).json({ message: "check username error", error });
+  }
+};
+//chatgpt返回200的条件很严格，可以说全部结果和条件符合预期的唯一结果才能使用200.其他比如说这个重复户名都当作异常，它认为也是业务异常。我个人不赞同这样，但也不是很反对。

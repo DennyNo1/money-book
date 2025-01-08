@@ -19,7 +19,22 @@ export const register = async (user) => {
     const response = await axios.post(API_URL + `/user/register`, { user });
     return response;
   } catch (error) {
-    console.error( error);
+    console.error(error);
+    throw error; // 可以在组件中处理错误
+  }
+};
+
+export const checkUsername = async (username) => {
+  try {
+    console.log(username);
+    const response = await axios.get(API_URL + `/user/checkUsername`, {
+      params: {
+        username: username,
+      },
+    });
+    return response;
+  } catch (error) {
+    console.error(error);
     throw error; // 可以在组件中处理错误
   }
 };

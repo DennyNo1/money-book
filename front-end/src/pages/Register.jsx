@@ -5,7 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-import { register } from "../api/user";
+import { register, checkUsername } from "../api/user";
 
 function Register() {
   const navigate = useNavigate(); //hook函数，用于导航
@@ -14,23 +14,22 @@ function Register() {
   //表单数据
   const [values, setValues] = useState({
     username: "",
-    // email: "",
+    nickname: "",
     password: "",
     confirmPassword: "",
   });
+
+  //判断用户名是否重复
+  const [isUsernameAvailable, setIsUsernameAvailable] = useState(null);
   //处理提交
   const handleSubmit = async (event) => {
     event.preventDefault();
 
     if (handleValidation()) {
-      const {
-        password,
-        username,
-        // email
-      } = values;
+      const { password, username, nickname } = values;
       const user = {
         password: password,
-        // email: email,
+        nickname: nickname,
         username: username,
       };
       //console.log("ok");
@@ -64,14 +63,35 @@ function Register() {
     theme: "dark",
   };
 
+  //处理用户名输入的额外函数
+  function handleUsernameChange(event) {
+    setValues({ ...values, [event.target.name]: event.target.value });
+    const newUsername = event.target.value;
+
+    if (newUsername.length === 0) {
+      setIsUsernameAvailable(null);
+      return;
+    }
+
+    // 防抖处理，确保在用户停止输入后再发送请求
+    clearTimeout(window.debounceTimer);
+    window.debounceTimer = setTimeout(async () => {
+      try {
+        await checkUsername( newUsername );
+        setIsUsernameAvailable(true);
+      } catch (error) {
+        setIsUsernameAvailable(false);
+        toast.error(
+          "The username already be used",
+          toastOptions
+        );
+      }
+    }, 500); // 500 毫秒防抖
+  }
+
   function handleValidation() {
     //解构赋值
-    const {
-      password,
-      confirmPassword,
-      username,
-      // email
-    } = values;
+    const { password, confirmPassword, username, nickname } = values;
     if (password !== confirmPassword) {
       //我们一般用组件库了
       toast.error(
@@ -79,17 +99,16 @@ function Register() {
         toastOptions
       );
       return false;
-    } else if (username.length <= 3) {
-      toast.error("Username should be longer than 3 characters.", toastOptions);
+    } else if (username.length <= 6) {
+      toast.error("Username should be longer than 6 characters.", toastOptions);
       return false;
     } else if (password.length < 6) {
       toast.error("Password should be 6 characters at least.", toastOptions);
       return false;
+    } else if (nickname === "") {
+      toast.error("Please input nickname ", toastOptions);
+      return false;
     }
-    //  else if (email === "") {
-    //   toast.error("Please input valid email address", toastOptions);
-    //   return false;
-    // }
     return true;
   }
 
@@ -101,18 +120,25 @@ function Register() {
             <img src="/logo.svg" alt="Logo"></img>
             <h1>money-book</h1>
           </div>
+          <div>
+            <input
+              type="text"
+              placeholder="Username"
+              name="username"
+              onChange={handleUsernameChange}
+            ></input>
+            {/* {isUsernameAvailable === null ? null : isUsernameAvailable ? (
+              <span style={{ color: "green" }}>Username available</span>
+            ) : (
+              <span style={{ color: "red" }}>Username already taken</span>
+            )} */}
+          </div>
           <input
             type="text"
-            placeholder="Username"
-            name="username"
+            placeholder="Nickname"
+            name="nickname"
             onChange={handleChange}
           ></input>
-          {/* <input
-            type="email"
-            placeholder="Email"
-            name="email"
-            onChange={handleChange}
-          ></input> */}
           <input
             type="password"
             placeholder="Password"
