@@ -38,7 +38,7 @@ export default function MoneyTable() {
     Array(allFields.length).fill("")
   ); // 初始值为空
 
-  //从url获取collectionName
+  //从url获取collectionName.这个解构出来的name是固定的，无法改成collectionname。
   const { name } = useParams();
 
   //
@@ -50,9 +50,22 @@ export default function MoneyTable() {
   const [editIndex, setEditIndex] = useState({ field: "", docIndex: "" });
 
   const [newEditValue, setNewEditValue] = useState("");
+
+  const [selectedValue, setSelectedValue] = useState("");
+
+  const handleChange = (event) => {
+    setSelectedValue(event.target.value);
+  };
+  const options = [
+    { value: "string", label: "String" },
+    { value: "number", label: "Nubmer" },
+    { value: "date", label: "Date" },
+  ];
   //添加field
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // console.log(selectedValue);
+    const type = selectedValue;
 
     if (!input.trim()) {
       console.error("Input is empty.");
@@ -60,7 +73,12 @@ export default function MoneyTable() {
       return;
     }
     try {
-      const response = await addField({ field: input, collection: name });
+      console.log(type);
+      const response = await addField({
+        field: input,
+        collection: name,
+        type: type,
+      });
 
       if (response.status !== 200) {
         alert(response.data.message);
@@ -80,11 +98,12 @@ export default function MoneyTable() {
   //从后端获取最新所有字段并更新到页面
   const fetchFields = async () => {
     try {
+      console.log(name);
       //对后端传过来的数据进行处理
       const { data } = await getAllFields(name);
 
       //获取只有fieldName的对象的数组。但我觉得没必要
-
+      
       setAllFields(data.data);
     } catch (error) {
       console.error("Error fetching table:", error);
@@ -186,7 +205,7 @@ export default function MoneyTable() {
                   key={index}
                   className="table-cell p-3 border-r border-gray-300 last:border-none text-center whitespace-nowrap"
                 >
-                  <h2 className=" font-semibold">{item}</h2>
+                  <h2 className=" font-semibold">{item.field}</h2>
                 </div>
               ))}
             </div>
@@ -403,6 +422,21 @@ export default function MoneyTable() {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                   />
+                  <select
+                    id="options"
+                    value={selectedValue}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 mt-4"
+                  >
+                    <option value="" disabled>
+                      Please select
+                    </option>
+                    {options.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <button

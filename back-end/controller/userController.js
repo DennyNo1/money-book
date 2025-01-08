@@ -53,10 +53,12 @@ exports.login = async (req, res) => {
         console.log(jwt);
         return res.status(200).json({ message: "login success", token: jwt });
       } else {
-        return res.status(400).json({ message: "password is wrong" });
+        return res
+          .status(400)
+          .json({ message: "Password does not match username" });
       }
     } else {
-      return res.status(400).json({ message: "username is wrong" });
+      return res.status(400).json({ message: "User is not registered" });
     }
   } catch (error) {
     res.status(500).json({ message: "login error", error });

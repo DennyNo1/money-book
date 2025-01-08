@@ -8,21 +8,27 @@ import { login } from "../api/user";
 
 function Login() {
   const navigate = useNavigate(); //hook函数，用于导航
+  //登录处理逻辑
   const handleSubmit = async (event) => {
     event.preventDefault();
 
     if (handleValidation()) {
+      console.log("ok")
       const { password, username } = values;
       const user = { password: password, username: username };
 
-      const response = await login(user);
-      console.log(response);
-      if (response.status === 200) {
-        //登录成功把用户信息放在localStorage
-        localStorage.setItem("token", response.data.token);
-        navigate("/");
-      } else {
-        toast.error(response.msg, toastOptions);
+      //只有登录认证成功是200，其他都是4xx
+      try {
+        const response = await login(user);
+        console.log(response.status);
+        if (response.status === 200) {
+          //登录成功把用户信息放在localStorage
+          localStorage.setItem("money-book-token", response.data.token);
+          navigate("/");
+        }
+      } catch (error) {
+       
+        toast.error(error.response.data.message, toastOptions);
       }
     }
   };
@@ -58,7 +64,7 @@ function Login() {
     if (username.length <= 3) {
       toast.error("Username should be longer than 3 characters.", toastOptions);
       return false;
-    } else if (password.length <6) {
+    } else if (password.length < 6) {
       toast.error("Password should be  6 characters at least. ", toastOptions);
       return false;
     }

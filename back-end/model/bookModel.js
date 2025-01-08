@@ -9,4 +9,4 @@ const bookSchema = new mongoose.Schema({
     default: [],
   },
 });
-module.exports = mongoose.model("Book", bookSchema);
+module.exports = mongoose.model("Book", bookSchema,'book');//如果不写最后的book，会默认是把Book转换为books的集合名

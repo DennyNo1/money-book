@@ -39,8 +39,6 @@ function Register() {
       if (data.status === false) {
         toast.error(data.msg, toastOptions);
       } else {
-        //注册成功把用户信息放在localStorage
-        localStorage.setItem("chat-app-user", JSON.stringify(data.user));
         navigate("/");
       }
     }
@@ -77,14 +75,11 @@ function Register() {
     clearTimeout(window.debounceTimer);
     window.debounceTimer = setTimeout(async () => {
       try {
-        await checkUsername( newUsername );
+        await checkUsername(newUsername);
         setIsUsernameAvailable(true);
       } catch (error) {
         setIsUsernameAvailable(false);
-        toast.error(
-          "The username already be used",
-          toastOptions
-        );
+        toast.error("The username already be used", toastOptions);
       }
     }, 500); // 500 毫秒防抖
   }
@@ -99,11 +94,14 @@ function Register() {
         toastOptions
       );
       return false;
-    } else if (username.length <= 6) {
+    } else if (username.length < 6) {
       toast.error("Username should be longer than 6 characters.", toastOptions);
       return false;
     } else if (password.length < 6) {
-      toast.error("Password should be 6 characters at least.", toastOptions);
+      toast.error(
+        "Password should be longer than 6 characters .",
+        toastOptions
+      );
       return false;
     } else if (nickname === "") {
       toast.error("Please input nickname ", toastOptions);

@@ -2,19 +2,19 @@ const mongoose = require("mongoose");
 
 const Book = require("../model/bookModel");
 
-//添加字段现在改变为对BookModel进行的操作
+//添加一个field，即对book表修改doc。
 exports.addField = async (req, res) => {
   try {
     console.log("Received request");
 
     // 获取请求体中的想新增的字段名和它的目标集合
-    const { field, collection } = req.body;
+    const { field, collection, type } = req.body;
 
     // 检查字段和集合是否提供
-    if (!field || !collection) {
+    if (!field || !collection || !type) {
       return res
         .status(400)
-        .json({ message: "Field and collection are required" });
+        .json({ message: "Field, collection and type are required" });
     }
 
     // 检查该集合是否存在
@@ -29,18 +29,18 @@ exports.addField = async (req, res) => {
         .json({ message: `Collection '${collection}' does not exist.` });
     }
 
-    //拿到原来的doc
+    //获取到请求的collection的doc
     const doc = await Book.findOne({ name: collection });
     // 检查 field 是否已经存在于集合中
     const fieldExists = doc.fields.includes(field);
     if (fieldExists) {
-      // 如果字段已存在，返回提示
+      // 如果字段已存在，返回提示。目前不支持字段修改。
       return res.status(400).json({ message: "Field already exists." });
     }
 
     // 如果字段不存在，插入新的字段
 
-    doc.fields.push(field); // 直接用数组方法插入
+    doc.fields.push({ field: field, type: type }); // 直接用数组方法插入
     const insertResult = await doc.save(); // 保存文档
 
     // 返回成功响应

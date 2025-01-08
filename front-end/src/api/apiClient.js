@@ -7,7 +7,7 @@ const apiClient = axios.create({
 // 请求拦截器：添加 JWT Token 到 Header
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token"); // 从 localStorage 获取 Token
+    const token = localStorage.getItem("money-book-token"); // 从 localStorage 获取 Token
     if (token) {
       config.headers.Authorization = `Bearer ${token}`; // 将 Token 添加到 Authorization Header
     }

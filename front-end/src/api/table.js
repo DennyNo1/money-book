@@ -1,10 +1,11 @@
 import apiClient from "./apiClient";
 
-export const addField = async ({ collection, field }) => {
+export const addField = async ({ collection, field, type }) => {
   try {
     const response = await apiClient.post("/book/field", {
       collection,
       field,
+      type,
     });
     return response; // 返回新添加的书籍信息或状态
   } catch (error) {
