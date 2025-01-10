@@ -13,22 +13,27 @@ import {
 import CSTable from "../components/CSTable";
 import CashTable from "../components/CashTable";
 import BackHome from "../components/BackHome";
-
-import { FloatButton } from "antd";
-import { EditOutlined, EditTwoTone, HomeOutlined } from "@ant-design/icons";
+import { EditTwoTone } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
+import { Drawer, Divider } from "antd";
 
 export default function MoneyTable() {
   const navigate = useNavigate();
   //添加字段的弹窗的开关
   const [showModal, setShowModal] = useState(false);
+  const [showCaculate, setShowCalculate] = useState(false);
 
   //添加字段的输入框
   const [input, setInput] = useState([]);
 
+  //计算的输入框的列名
+  const [calculateInput, setCalculateInput] = useState([]);
+
   //所有字段组成的数组
   const [allFields, setAllFields] = useState([]);
-  //除了字段的整个表格的数据
+
+  const [remainingFields, setRemainingFields] = useState([]);
+
   const [docs, setDocs] = useState([]);
 
   const [showInput, setShowInput] = useState(false);
@@ -67,11 +72,7 @@ export default function MoneyTable() {
     // console.log(selectedValue);
     const type = selectedValue;
 
-    if (!input.trim()) {
-      console.error("Input is empty.");
-      alert("Please enter a book name.");
-      return;
-    }
+    //required自动判定是否为空
     try {
       console.log(type);
       const response = await addField({
@@ -103,7 +104,7 @@ export default function MoneyTable() {
       const { data } = await getAllFields(name);
 
       //获取只有fieldName的对象的数组。但我觉得没必要
-      
+
       setAllFields(data.data);
     } catch (error) {
       console.error("Error fetching table:", error);
@@ -191,19 +192,40 @@ export default function MoneyTable() {
     CS: <CSTable docs={docs} />,
     Cash: <CashTable docs={docs} />,
   };
+
+  const setRemaining = () => {
+    setRemainingFields(allFields.filter((item) => item.type === "number"));
+  };
+  const setCalculated = () => {};
+
+  // 使用 useState 来管理 input 列表
+  const [inputs, setInputs] = useState([]);
+  const [calculatedFields, setCalculatedFields] = useState([]);
+
+  //每次往数组中先添加一个对象，来表示当前的所有的选择框
+  const addCalculatedFields = () => {
+    setCalculatedFields([...calculatedFields, {}]);
+  };
+
+  // 处理 input 值变化的函数
+  const handleInputsChange = (index, value) => {
+    const newInputs = [...inputs];
+    newInputs[index] = value;
+    setInputs(newInputs);
+  };
   return (
     <div className="min-h-screen min-w-screen  bg-gradient-to-r from-green-100 to-white flex  justify-center  border-4 flex-col">
       {/* 表格组*/}
-      <div className="flex flex-row max-w-full px-10 mt-28">
+      <div className="flex flex-row max-w-full px-10 ">
         {/* 主表格 */}
-        <div className="table w-full max-w-full max-h-[500px] overflow-auto shadow-lg  bg-white">
+        <div className="table w-auto max-h-[500px] overflow-auto shadow-lg  bg-white ml-20">
           {/* 表格头 */}
-          <div className="table-header-group bg-gradient-to-r from-green-400 to-green-600 text-white">
+          <div className="table-header-group bg-gradient-to-r from-green-400 to-green-600 text-white ">
             <div className="table-row">
               {allFields.map((item, index) => (
                 <div
                   key={index}
-                  className="table-cell p-3 border-r border-gray-300 last:border-none text-center whitespace-nowrap"
+                  className="table-cell p-3 border-r border-gray-300 last:border-none text-center whitespace-nowrap "
                 >
                   <h2 className=" font-semibold">{item.field}</h2>
                 </div>
@@ -282,7 +304,7 @@ export default function MoneyTable() {
                   >
                     <div className="flex justify-center items-center">
                       {
-                        item.toLowerCase().includes("date") ? (
+                        item.field.toLowerCase().includes("date") ? (
                           <input
                             type="date"
                             className="  w-full max-w-fit p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
@@ -393,6 +415,15 @@ export default function MoneyTable() {
         >
           Edit
         </button>
+
+        <button
+          onClick={() => {
+            setShowCalculate(true);
+          }}
+          className="px-6 py-3 mx-2 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition duration-300"
+        >
+          Calculate
+        </button>
         <button
           onClick={handleOpenModal}
           className="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition duration-300"
@@ -400,6 +431,74 @@ export default function MoneyTable() {
           Add New Field
         </button>
       </div>
+
+      {/* drawer，用于产生新的列，并进行加减乘除的运算 */}
+      <Drawer
+        onClose={() => {
+          setShowCalculate(false);
+        }}
+        open={showCaculate}
+      >
+        {" "}
+        <label className="block text-gray-700">New Calculate Field</label>
+        <input
+          type="text"
+          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 mt-2"
+          required
+          value={calculateInput}
+          onChange={(e) => setCalculateInput(e.target.value)}
+        />
+        <Divider />
+        {/* 选择器组 */}
+        <button
+          type="submit"
+          className="w-auto h-10 p-2 my-4 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition duration-300"
+          onClick={() => {
+            setRemaining();
+            addCalculatedFields();
+          }}
+        >
+          Add calculated column
+        </button>
+        <div>
+          {/* 渲染所有的 input */}
+          {calculatedFields.map((item, index) => (
+            <div key={index}>
+              {/* <input
+                type="text"
+                value={value}
+                onChange={(e) => handleInputsChange(index, e.target.value)}
+                placeholder="请输入内容"
+              /> */}
+              <select
+                id="options"
+                value={selectedValue}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 mt-4"
+                required
+              >
+                <option value="" disabled>
+                  Please select column
+                </option>
+                {remainingFields.map((option, index) => (
+                  <option key={index} value={option.field}>
+                    {option.field}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ))}
+          {/* 添加 input 的按钮 */}
+        </div>
+        <Divider />
+        <button
+          type="submit"
+          className="w-full py-2 my-6 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition duration-300"
+        >
+          Submit
+        </button>
+      </Drawer>
+
       {/* 添加field的弹窗 */}
       <div className="flex items-center justify-center">
         {showModal && (
@@ -427,9 +526,10 @@ export default function MoneyTable() {
                     value={selectedValue}
                     onChange={handleChange}
                     className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 mt-4"
+                    required
                   >
                     <option value="" disabled>
-                      Please select
+                      Please select the type of new field
                     </option>
                     {options.map((option) => (
                       <option key={option.value} value={option.value}>
@@ -441,7 +541,7 @@ export default function MoneyTable() {
 
                 <button
                   type="submit"
-                  className="w-full py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition duration-300"
+                  className="w-full py-2  bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition duration-300"
                 >
                   Submit
                 </button>
