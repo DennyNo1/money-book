@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useEffect } from "react";
-
+import { Drawer } from "antd";
 import {
   addField,
   getAllFields,
@@ -15,24 +15,22 @@ import CashTable from "../components/CashTable";
 import BackHome from "../components/BackHome";
 import { EditTwoTone } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import { Drawer, Divider } from "antd";
-
+import CalculateDrawer from "../components/CalculateDrawer";
 export default function MoneyTable() {
   const navigate = useNavigate();
   //添加字段的弹窗的开关
   const [showModal, setShowModal] = useState(false);
-  const [showCaculate, setShowCalculate] = useState(false);
 
   //添加字段的输入框
   const [input, setInput] = useState([]);
 
-  //计算的输入框的列名
-  const [calculateInput, setCalculateInput] = useState([]);
-
   //所有字段组成的数组
   const [allFields, setAllFields] = useState([]);
 
-  const [remainingFields, setRemainingFields] = useState([]);
+  const [showDrawer, setShowDrawer] = useState(false);
+  const closeDrawer = () => {
+    setShowDrawer(false);
+  };
 
   const [docs, setDocs] = useState([]);
 
@@ -126,17 +124,17 @@ export default function MoneyTable() {
   const handleAddRow = () => {
     setShowInput(!showInput);
   };
-  //向后端提交一行数据
+  //向后端新建一行数据
   const handleSubmitRow = async () => {
     //根据inputValues生成sendInput
-    const sendValues = {};
+    const doc = {};
     for (let i = 0; i < allFields.length; i++) {
-      sendValues[allFields[i]] = inputValues[i];
+      doc[allFields[i].field] = inputValues[i];
     }
     try {
       const response = await addDoc({
         collection: name,
-        doc: sendValues,
+        doc: doc,
       });
 
       if (response.status !== 200) {
@@ -157,7 +155,7 @@ export default function MoneyTable() {
     fetchDocs();
   }, []);
 
-  //输入值改变时，InputValues更新，同时更新sendInput
+  //输入值改变时，InputValues更新，同时更新sendInput。这是新增输入框。
   const handleInputChange = (index, value) => {
     const newInputValues = [...inputValues];
     newInputValues[index] = value;
@@ -193,9 +191,6 @@ export default function MoneyTable() {
     Cash: <CashTable docs={docs} />,
   };
 
-  const setRemaining = () => {
-    setRemainingFields(allFields.filter((item) => item.type === "number"));
-  };
   const setCalculated = () => {};
 
   // 使用 useState 来管理 input 列表
@@ -234,27 +229,27 @@ export default function MoneyTable() {
           </div>
 
           {/* //docs是数组，doc是对象 */}
-          {/* 表格行 */}
+          {/* 展示的表格行 */}
           <div className="table-row-group overflow-x-auto">
             {docs.length > 0 &&
               docs.map((doc, docIndex) => (
                 <div key={docIndex} className="table-row">
-                  {allFields.map((field, index) => (
+                  {allFields.map((item, index) => (
                     <div
                       key={index}
                       className="table-cell p-3 border-gray-300 text-center border-y-2 whitespace-nowrap overflow-hidden "
                     >
                       {!(
-                        editIndex.field === field &&
+                        editIndex.field === item.field &&
                         editIndex.docIndex === docIndex
                       ) ? (
                         <h2 className="">
-                          {doc[field]}{" "}
+                          {doc[item.field]}{" "}
                           {showEdit && (
                             <EditTwoTone
                               twoToneColor="#a6a6a6"
                               onClick={() => {
-                                clickEditCell(docIndex, field);
+                                clickEditCell(docIndex, item.field);
                               }}
                             />
                           )}
@@ -281,7 +276,9 @@ export default function MoneyTable() {
                               ❌
                             </div>
                             <div
-                              onClick={() => handleEditCell(docIndex, field)}
+                              onClick={() =>
+                                handleEditCell(docIndex, item.field)
+                              }
                               className="w-10 h-10  text-white text-2xl flex items-center justify-center rounded-full cursor-pointer transition-transform duration-300 ease-in-out hover:scale-110"
                             >
                               ✔
@@ -326,7 +323,7 @@ export default function MoneyTable() {
                             style={{
                               overflow: "hidden", // 隐藏滚动条
                             }}
-                            value={inputValues[index]} // 绑定输入框的值
+                            value={inputValues[index]} // 绑定新增输入框的值
                             onChange={(e) => {
                               e.target.style.height = "auto"; // 重置高度
                               e.target.style.height = `${e.target.scrollHeight}px`; // 设置为内容高度
@@ -395,18 +392,11 @@ export default function MoneyTable() {
         )}
       </div>
 
-      {/* 回主页按钮 */}
-      {/* <div className="absolute top-10 left-6" onClick={() => navigate("/")}>
-        {" "}
-        <button className="px-4 py-3 mx-2 bg-green-500 text-white font-semibold rounded-full shadow-md hover:bg-green-600 transition duration-300">
-          {" "}
-          <HomeOutlined />
-        </button>
-      </div> */}
       <BackHome></BackHome>
 
-      {/* 添加列名按钮 */}
+      {/* 按钮组 */}
       <div className="absolute top-10 right-6">
+        {/* 编辑表格 */}
         <button
           onClick={() => {
             setShowEdit(!showEdit);
@@ -415,15 +405,16 @@ export default function MoneyTable() {
         >
           Edit
         </button>
-
+        {/* 计算drawer */}
         <button
           onClick={() => {
-            setShowCalculate(true);
+            setShowDrawer(true);
           }}
           className="px-6 py-3 mx-2 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition duration-300"
         >
           Calculate
         </button>
+        {/* 新增field */}
         <button
           onClick={handleOpenModal}
           className="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition duration-300"
@@ -431,73 +422,11 @@ export default function MoneyTable() {
           Add New Field
         </button>
       </div>
-
-      {/* drawer，用于产生新的列，并进行加减乘除的运算 */}
-      <Drawer
-        onClose={() => {
-          setShowCalculate(false);
-        }}
-        open={showCaculate}
-      >
-        {" "}
-        <label className="block text-gray-700">New Calculate Field</label>
-        <input
-          type="text"
-          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 mt-2"
-          required
-          value={calculateInput}
-          onChange={(e) => setCalculateInput(e.target.value)}
-        />
-        <Divider />
-        {/* 选择器组 */}
-        <button
-          type="submit"
-          className="w-auto h-10 p-2 my-4 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition duration-300"
-          onClick={() => {
-            setRemaining();
-            addCalculatedFields();
-          }}
-        >
-          Add calculated column
-        </button>
-        <div>
-          {/* 渲染所有的 input */}
-          {calculatedFields.map((item, index) => (
-            <div key={index}>
-              {/* <input
-                type="text"
-                value={value}
-                onChange={(e) => handleInputsChange(index, e.target.value)}
-                placeholder="请输入内容"
-              /> */}
-              <select
-                id="options"
-                value={selectedValue}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 mt-4"
-                required
-              >
-                <option value="" disabled>
-                  Please select column
-                </option>
-                {remainingFields.map((option, index) => (
-                  <option key={index} value={option.field}>
-                    {option.field}
-                  </option>
-                ))}
-              </select>
-            </div>
-          ))}
-          {/* 添加 input 的按钮 */}
-        </div>
-        <Divider />
-        <button
-          type="submit"
-          className="w-full py-2 my-6 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition duration-300"
-        >
-          Submit
-        </button>
-      </Drawer>
+      <CalculateDrawer
+        showDrawer={showDrawer}
+        closeDrawer={closeDrawer}
+        allFields={allFields}
+      ></CalculateDrawer>
 
       {/* 添加field的弹窗 */}
       <div className="flex items-center justify-center">
