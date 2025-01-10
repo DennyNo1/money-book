@@ -8,7 +8,6 @@ import { ArrowDownOutlined, ArrowUpOutlined } from "@ant-design/icons";
 import { getCSMarketIndex, getStockIndex } from "../api";
 import { Spin } from "antd";
 
-
 function Home() {
   const navigate = useNavigate();
   const [CSIndex, setCSIndex] = useState([]);
@@ -77,6 +76,12 @@ function Home() {
               onLoad={(e) => (e.target.style.opacity = 1)}
             />
           </div>
+          <div
+            onClick={() => handleClick("/test")}
+            className="border-2 w-48 h-48 flex justify-center items-center rounded-full border- transition-transform duration-300 transform hover:scale-105"
+          >
+            <div>test</div>
+          </div>
         </div>
         <div className="absolute top-6 left-0 right-0 w-1/3">
           <Row gutter={16}>
@@ -134,7 +139,6 @@ function Home() {
           </Row> */}
         </div>
       </div>
-
     </div>
   );
 }
