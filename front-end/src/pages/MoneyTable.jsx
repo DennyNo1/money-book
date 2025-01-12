@@ -426,6 +426,7 @@ export default function MoneyTable() {
         showDrawer={showDrawer}
         closeDrawer={closeDrawer}
         allFields={allFields}
+        docs={docs}
       ></CalculateDrawer>
 
       {/* 添加field的弹窗 */}
