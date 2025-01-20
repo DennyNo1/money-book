@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const Book = require("../model/bookModel");
-
+const Calculate = require("../model/calculateModel");
 exports.addBook = async (req, res) => {
   console.log("Received request");
   const { name } = req.body || {};
@@ -57,7 +57,7 @@ exports.deleteBook = async (req, res) => {
     const deleteCollectionName = name;
     const db = mongoose.connection.db; // 获取原生的 `db` 对象
 
-    // 检查集合是否存在
+    // 先检查deleteBook集合是否存在
     const collections = await db
       .listCollections({ name: deleteCollectionName })
       .toArray();
@@ -67,7 +67,9 @@ exports.deleteBook = async (req, res) => {
       });
     }
     await db.dropCollection(deleteCollectionName);
+    //
     const books = await Book.deleteOne({ name });
+    await Calculate.deleteOne({ book: name });
     res.status(200).json({
       message: "This book has been deleted and collection dropped",
       deleteCollectionName,

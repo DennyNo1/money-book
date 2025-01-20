@@ -3,7 +3,7 @@ const Calculate = require("../model/calculateModel");
 //将计算结果的一张表存入数据库
 exports.addCalculateTable = async (req, res) => {
   console.log("addCalculateTable");
-  const { book, data, formula } = req.body || {};
+  const { book, data, formula ,field} = req.body || {};
   if (!book) {
     return res.status(400).json({ message: "Book is required" });
   }
@@ -13,6 +13,7 @@ exports.addCalculateTable = async (req, res) => {
       book,
       data,
       formula,
+      field
     });
     await newCalculate.save();
 
@@ -27,7 +28,8 @@ exports.addCalculateTable = async (req, res) => {
 
 exports.getCalculateTable = async (req, res) => {
   console.log("getCalculateTable");
-  const { book } = req.body || {};
+ const { book } = req.query; // 获取查询参数中的 book|| {};
+
   if (!book) {
     return res.status(400).json({ message: "Book is required" });
   }

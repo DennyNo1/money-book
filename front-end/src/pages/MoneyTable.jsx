@@ -11,7 +11,7 @@ import {
 } from "../api/table";
 
 import CSTable from "../components/CSTable";
-import CashTable from "../components/CashTable";
+
 import BackHome from "../components/BackHome";
 import { EditTwoTone } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
@@ -188,7 +188,6 @@ export default function MoneyTable() {
 
   const tableComponents = {
     CS: <CSTable docs={docs} />,
-    Cash: <CashTable docs={docs} />,
   };
 
   const setCalculated = () => {};
@@ -228,7 +227,7 @@ export default function MoneyTable() {
             </div>
           </div>
 
-          {/* //docs是数组，doc是对象 */}
+          {/* docs是数组，doc是对象 */}
           {/* 展示的表格行 */}
           <div className="table-row-group overflow-x-auto">
             {docs.length > 0 &&
@@ -359,6 +358,12 @@ export default function MoneyTable() {
           </div>
         </div>{" "}
         <div className="ml-4">{tableComponents[name]}</div>
+        <CalculateDrawer
+          showDrawer={showDrawer}
+          closeDrawer={closeDrawer}
+          allFields={allFields}
+          docs={docs}
+        ></CalculateDrawer>
       </div>
 
       {/* 按钮组 */}
@@ -422,12 +427,6 @@ export default function MoneyTable() {
           Add New Field
         </button>
       </div>
-      <CalculateDrawer
-        showDrawer={showDrawer}
-        closeDrawer={closeDrawer}
-        allFields={allFields}
-        docs={docs}
-      ></CalculateDrawer>
 
       {/* 添加field的弹窗 */}
       <div className="flex items-center justify-center">

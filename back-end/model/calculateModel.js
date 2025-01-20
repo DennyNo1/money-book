@@ -15,5 +15,9 @@ const calculateSchema = new mongoose.Schema({
     type: Array,
     default: [],
   },
+  field: {
+    type: String,
+    default: "",
+  },
 });
 module.exports = mongoose.model("Calculate", calculateSchema, "calculate");

@@ -15,6 +15,7 @@ function MoneyBook() {
   const handleCloseModal = () => setShowModal(false);
 
   const handleDelete = (book) => {
+    console.log("delete");
     setSelectedBook(book);
     setShowDeleteModal(true);
   };
@@ -57,12 +58,12 @@ function MoneyBook() {
 
   const confirmDelete = async () => {
     // 执行删除逻辑
-    console.log(`Deleting book: ${selectedBook.name}`);
+    console.log(`Deleting book: ${selectedBook}`);
     setShowDeleteModal(false);
     setSelectedBook(null);
     // 在这里调用删除 API 或从状态中移除书本
 
-    await deleteBook(selectedBook.name);
+    await deleteBook(selectedBook);
     fetchBooks();
   };
   useEffect(() => {
@@ -77,16 +78,21 @@ function MoneyBook() {
           <div
             className="border w-48 h-64 bg-white shadow-lg rounded-md p-4 flex flex-col justify-between items-center border-gray-300 transition-transform duration-300 transform hover:scale-105 relative"
             key={index}
-            onClick={() => navigate(`/moneybook/${book.name}`)}
           >
-            <img src="/cover.svg"></img>
-            <h2 className="font-semibold text-gray-800 cursor-pointer my-8">
+            <img
+              src="/cover.svg"
+              onClick={() => navigate(`/moneybook/${book.name}`)}
+            ></img>
+            <h2
+              className="font-semibold text-gray-800 cursor-pointer my-8"
+              onClick={() => navigate(`/moneybook/${book.name}`)}
+            >
               {book.name}
             </h2>
             {/* 删除按钮 */}
             <button
-              onClick={() => handleDelete(book)}
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 font-bold"
+              onClick={() => handleDelete(book.name)}
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 font-bold text-2xl"
             >
               &times;
             </button>
