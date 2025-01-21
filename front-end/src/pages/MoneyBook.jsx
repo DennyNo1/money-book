@@ -151,7 +151,7 @@ function MoneyBook() {
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white w-1/3 p-6 rounded-lg shadow-lg">
             <h3 className="text-gray-800 font-semibold mb-4">
-              Are you sure you want to delete '{selectedBook?.name}'?
+              Are you sure to delete '{selectedBook}'?
             </h3>
             <div className="flex justify-end gap-4">
               <button

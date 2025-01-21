@@ -12,6 +12,7 @@ import {
 } from "@ant-design/icons";
 import { getCSMarketIndex, getStockIndex } from "../api";
 import { Spin, Drawer, Button } from "antd";
+import Profile from "../components/Profile";
 
 function Home() {
   const navigate = useNavigate();
@@ -97,6 +98,7 @@ function Home() {
             <div>test</div>
           </div> */}
         </div>
+        <Profile ></Profile>
         <div className="absolute top-6 left-0 right-0 w-1/3">
           <div onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
             <Button>

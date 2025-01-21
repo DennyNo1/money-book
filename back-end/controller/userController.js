@@ -50,8 +50,12 @@ exports.login = async (req, res) => {
         const username = queryUser.username;
         console.log({ username });
         const jwt = generateToken({ username });
+
         console.log(jwt);
-        return res.status(200).json({ message: "login success", token: jwt });
+        //登录成功
+        return res
+          .status(200)
+          .json({ message: "login success", token: jwt, user: queryUser });
       } else {
         return res
           .status(400)

@@ -13,7 +13,7 @@ function Login() {
     event.preventDefault();
 
     if (handleValidation()) {
-      console.log("ok")
+      console.log("ok");
       const { password, username } = values;
       const user = { password: password, username: username };
 
@@ -24,10 +24,13 @@ function Login() {
         if (response.status === 200) {
           //登录成功把用户信息放在localStorage
           localStorage.setItem("money-book-token", response.data.token);
+          const user = response.data.user;
+          localStorage.setItem("user_name", user.username);
+          localStorage.setItem("user_id", user._id);
+          localStorage.setItem("user_nickname", user.nickname);
           navigate("/");
         }
       } catch (error) {
-       
         toast.error(error.response.data.message, toastOptions);
       }
     }
