@@ -13,5 +13,5 @@ const router = express.Router();
 router.post("/book", verifyToken, addBook);
 // router.get("/", () => console.log("get"));
 router.get("/books", verifyToken, getAllBooks);
-router.delete("/book/:name", verifyToken, deleteBook);
+router.delete("/book/:book_id", verifyToken, deleteBook);
 module.exports = router;

@@ -1,9 +1,9 @@
 import apiClient from "./apiClient";
 
-export const addField = async ({ collection, field, type }) => {
+export const addField = async ({ book_id, field, type }) => {
   try {
     const response = await apiClient.post("/book/field", {
-      collection,
+      book_id,
       field,
       type,
     });
@@ -13,11 +13,9 @@ export const addField = async ({ collection, field, type }) => {
     throw error; // 可以在组件中处理错误
   }
 };
-export const getAllFields = async (collection) => {
+export const getAllFields = async (book_id) => {
   try {
-    const response = await apiClient.get(
-      `/book/fields?collection=${collection}`
-    );
+    const response = await apiClient.get(`/book/fields?book_id=${book_id}`);
     return response;
   } catch (error) {
     console.error("Error adding book:", error);
@@ -25,10 +23,10 @@ export const getAllFields = async (collection) => {
   }
 };
 
-export const addDoc = async ({ collection, doc }) => {
+export const addDoc = async ({ book_id, doc }) => {
   try {
     const response = await apiClient.post("/book/doc", {
-      collection,
+      book_id,
       doc,
     });
     return response; // 返回新添加的书籍信息或状态
@@ -38,13 +36,11 @@ export const addDoc = async ({ collection, doc }) => {
   }
 };
 
-export const getAllDocs = async (collection, order, orderBy) => {
+export const getAllDocs = async (book_id) => {
   try {
     const response = await apiClient.get(`/book/docs`, {
       params: {
-        collection: collection,
-        order: order,
-        orderBy: orderBy,
+        book_id: book_id,
       },
     });
     return response;
@@ -54,10 +50,9 @@ export const getAllDocs = async (collection, order, orderBy) => {
   }
 };
 
-export const updateDoc = async ({ collection, doc }) => {
+export const updateDoc = async ({ doc }) => {
   try {
     const response = await apiClient.patch("/book/doc", {
-      collection,
       doc,
     });
     return response; // 返回新添加的书籍信息或状态

@@ -3,17 +3,17 @@ const Calculate = require("../model/calculateModel");
 //将计算结果的一张表存入数据库
 exports.addCalculateTable = async (req, res) => {
   console.log("addCalculateTable");
-  const { book, data, formula ,field} = req.body || {};
-  if (!book) {
+  const { book_id, data, formula, field } = req.body || {};
+  if (!book_id) {
     return res.status(400).json({ message: "Book is required" });
   }
 
   try {
     const newCalculate = await Calculate.create({
-      book,
+      book_id,
       data,
       formula,
-      field
+      field,
     });
     await newCalculate.save();
 
@@ -28,13 +28,13 @@ exports.addCalculateTable = async (req, res) => {
 
 exports.getCalculateTable = async (req, res) => {
   console.log("getCalculateTable");
- const { book } = req.query; // 获取查询参数中的 book|| {};
+  const { book_id } = req.query; // 获取查询参数中的 book|| {};
 
-  if (!book) {
+  if (!book_id) {
     return res.status(400).json({ message: "Book is required" });
   }
   try {
-    const calculateTable = await Calculate.find({ book: book });
+    const calculateTable = await Calculate.find({ book_id: book_id });
     res.status(200).json({
       message: "FcalculateTable in this book found",
       data: calculateTable,

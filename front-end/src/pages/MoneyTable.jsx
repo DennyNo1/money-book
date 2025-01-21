@@ -42,7 +42,7 @@ export default function MoneyTable() {
   ); // 初始值为空
 
   //从url获取collectionName.这个解构出来的name是固定的，无法改成collectionname。
-  const { name } = useParams();
+  const { book_id } = useParams();
 
   //
   const [showEdit, setShowEdit] = useState(false);
@@ -75,7 +75,7 @@ export default function MoneyTable() {
       console.log(type);
       const response = await addField({
         field: input,
-        collection: name,
+        book_id: book_id,
         type: type,
       });
 
@@ -94,12 +94,12 @@ export default function MoneyTable() {
       //alert("There was an error adding the book. Please try again.");
     }
   };
+  const name = "money";
   //从后端获取最新所有字段并更新到页面
   const fetchFields = async () => {
     try {
-      console.log(name);
       //对后端传过来的数据进行处理
-      const { data } = await getAllFields(name);
+      const { data } = await getAllFields(book_id);
 
       //获取只有fieldName的对象的数组。但我觉得没必要
 
@@ -114,7 +114,7 @@ export default function MoneyTable() {
     try {
       //对后端传过来的数据进行处理
 
-      const { data } = await getAllDocs(name, "asc", "Buy Date");
+      const { data } = await getAllDocs(book_id);
       setDocs(data.data);
     } catch (error) {
       console.error("Error fetching docs:", error);
@@ -133,7 +133,7 @@ export default function MoneyTable() {
     }
     try {
       const response = await addDoc({
-        collection: name,
+        book_id: book_id,
         doc: doc,
       });
 
@@ -176,7 +176,6 @@ export default function MoneyTable() {
     newDoc[field] = newEditValue;
     console.log(newDoc);
     await updateDoc({
-      collection: name,
       doc: newDoc,
     });
     fetchDocs();
@@ -458,7 +457,7 @@ export default function MoneyTable() {
                     required
                   >
                     <option value="" disabled>
-                      Please select the type of new field
+                      Select type
                     </option>
                     {options.map((option) => (
                       <option key={option.value} value={option.value}>

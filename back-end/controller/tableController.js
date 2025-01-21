@@ -2,35 +2,36 @@ const mongoose = require("mongoose");
 
 const Book = require("../model/bookModel");
 
-//添加一个field，即对book表修改doc。
+//添加一个field，仅需要对book表修改doc。
 exports.addField = async (req, res) => {
   try {
     console.log("Received request");
 
     // 获取请求体中的想新增的字段名和它的目标集合
-    const { field, collection, type } = req.body;
+    const { field, book_id, type } = req.body;
 
     // 检查字段和集合是否提供
-    if (!field || !collection || !type) {
+    if (!field || !book_id || !type) {
       return res
         .status(400)
-        .json({ message: "Field, collection and type are required" });
+        .json({ message: "Field, book_id and type are required" });
     }
 
     // 检查该集合是否存在
-    const collections = await mongoose.connection.db
-      .listCollections()
-      .toArray();
-    const collectionNames = collections.map((col) => col.name);
+    // const collections = await mongoose.connection.db
+    //   .listCollections()
+    //   .toArray();
+    // const collectionNames = collections.map((col) => col.name);
 
-    if (!collectionNames.includes(collection)) {
-      return res
-        .status(400)
-        .json({ message: `Collection '${collection}' does not exist.` });
-    }
+    // if (!collectionNames.includes(collection)) {
+    //   return res
+    //     .status(400)
+    //     .json({ message: `Collection '${collection}' does not exist.` });
+    // }
 
+    const objectId = new mongoose.Types.ObjectId(book_id);
     //获取到请求的collection的doc
-    const doc = await Book.findOne({ name: collection });
+    const doc = await Book.findOne({ _id: objectId });
     // 检查 field 是否已经存在于集合中
     const fieldExists = doc.fields.includes(field);
     if (fieldExists) {
@@ -58,11 +59,9 @@ exports.addField = async (req, res) => {
 //同样是对BookModel进行的操作
 exports.getAllFields = async (req, res) => {
   try {
-    console.log("Received request");
-    const { collection } = req.query;
-    // console.log(collection);
-    // 使用 MongoDB 原生驱动操作动态集合
-    const doc = await Book.findOne({ name: collection });
+    const { book_id } = req.query;
+    const objectId = new mongoose.Types.ObjectId(book_id);
+    const doc = await Book.findOne({ _id: objectId });
 
     if (doc === null) {
       return res.status(404).json({ message: "No such a collection'" });
@@ -73,40 +72,36 @@ exports.getAllFields = async (req, res) => {
       .status(200)
       .json({ message: "Fields of this book found", data: doc.fields });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "An error occurred", error });
   }
 };
 exports.addDoc = async (req, res) => {
   try {
-    console.log("Received request");
-
     // 获取请求体中的doc和集合
-    const { doc, collection } = req.body;
+    const { doc, book_id } = req.body;
 
     // 检查doc和集合是否提供
-    if (!doc || !collection) {
-      return res
-        .status(400)
-        .json({ message: "Doc and collection are required" });
+    if (!doc || !book_id) {
+      return res.status(400).json({ message: "Doc and book_id are required" });
     }
 
     // 检查集合是否存在
-    const collections = await mongoose.connection.db
-      .listCollections()
-      .toArray();
-    const collectionNames = collections.map((col) => col.name);
+    // const collections = await mongoose.connection.db
+    //   .listCollections()
+    //   .toArray();
+    // const collectionNames = collections.map((col) => col.name);
 
-    if (!collectionNames.includes(collection)) {
-      return res
-        .status(400)
-        .json({ message: `Collection '${collection}' does not exist.` });
-    }
+    // if (!collectionNames.includes(collection)) {
+    //   return res
+    //     .status(400)
+    //     .json({ message: `Collection '${collection}' does not exist.` });
+    // }
 
-    //目前允许重复插入doc
-
-    // 如果字段不存在，插入新的字段。这里是不检查doc字段和设定字段是否匹配的。
+    //把book_id放入doc
+    doc.book_id = book_id;
     const insertResult = await mongoose.connection.db
-      .collection(collection)
+      .collection("table")
       .insertOne(doc);
 
     // 返回成功响应
@@ -122,31 +117,33 @@ exports.addDoc = async (req, res) => {
 };
 exports.getAllDocs = async (req, res) => {
   try {
-    console.log("Received request");
-    const { collection, order, orderBy } = req.query;
+    //目前不进行排序
+    const { book_id } = req.query;
 
     // Step 1: 检查集合是否存在
-    const collections = await mongoose.connection.db
-      .listCollections()
-      .toArray();
-    const collectionNames = collections.map((col) => col.name);
+    // const collections = await mongoose.connection.db
+    //   .listCollections()
+    //   .toArray();
+    // const collectionNames = collections.map((col) => col.name);
 
-    if (!collectionNames.includes(collection)) {
-      // 如果集合不存在，返回 404 错误
-      return res.status(404).json({
-        message: `Collection '${collection}' does not exist`,
-        data: [],
-      });
-    }
+    // if (!collectionNames.includes(collection)) {
+    //   // 如果集合不存在，返回 404 错误
+    //   return res.status(404).json({
+    //     message: `Collection '${collection}' does not exist`,
+    //     data: [],
+    //   });
+    // }
 
-    let query = mongoose.connection.db.collection(collection).find({});
+    let query = mongoose.connection.db
+      .collection("table")
+      .find({ book_id: book_id });
 
     // 如果 orderBy 和 order 存在，则添加排序
-    if (orderBy && order) {
-      // 如果 order 为 "asc" 表示升序，用 1，"desc" 表示降序，用 -1
-      const sortOrder = order === "asc" ? 1 : -1;
-      query = query.sort({ [orderBy]: sortOrder });
-    }
+    // if (orderBy && order) {
+    //   // 如果 order 为 "asc" 表示升序，用 1，"desc" 表示降序，用 -1
+    //   const sortOrder = order === "asc" ? 1 : -1;
+    //   query = query.sort({ [orderBy]: sortOrder });
+    // }
 
     // 转换查询结果为数组
     const result = await query.toArray();
@@ -165,24 +162,22 @@ exports.getAllDocs = async (req, res) => {
   }
 };
 exports.updateDoc = async (req, res) => {
-  const { collection, doc } = req.body;
-  console.log(req.body);
-  console.log(doc);
+  const { doc } = req.body;
 
   try {
     // Step 1: 检查集合是否存在
-    const collections = await mongoose.connection.db
-      .listCollections()
-      .toArray();
-    const collectionNames = collections.map((col) => col.name);
+    // const collections = await mongoose.connection.db
+    //   .listCollections()
+    //   .toArray();
+    // const collectionNames = collections.map((col) => col.name);
 
-    if (!collectionNames.includes(collection)) {
-      // 如果集合不存在，返回 404 错误
-      return res.status(404).json({
-        message: `Collection '${collection}' does not exist`,
-        data: [],
-      });
-    }
+    // if (!collectionNames.includes(collection)) {
+    //   // 如果集合不存在，返回 404 错误
+    //   return res.status(404).json({
+    //     message: `Collection '${collection}' does not exist`,
+    //     data: [],
+    //   });
+    // }
     // Step 2: Update the document
     const _id = doc._id;
     const newDoc = doc;
@@ -191,13 +186,11 @@ exports.updateDoc = async (req, res) => {
     // console.log("Original _id:", doc._id); // 检查 doc._id 的原始值
     // console.log("ObjectId format:", new mongoose.Types.ObjectId(doc._id)); // 检查转换后的 ObjectId
 
-    const result = await mongoose.connection.db
-      .collection(collection)
-      .updateOne(
-        // Use the provided filter to find the document
-        { _id: new mongoose.Types.ObjectId(_id) }, // 查询条件：根据 _id 查找文档
-        { $set: newDoc }
-      );
+    const result = await mongoose.connection.db.collection("table").updateOne(
+      // Use the provided filter to find the document
+      { _id: new mongoose.Types.ObjectId(_id) }, // 查询条件：根据 _id 查找文档
+      { $set: newDoc }
+    );
 
     // Step 3: Send a success response
     res.status(200).json({

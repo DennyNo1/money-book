@@ -15,7 +15,7 @@ function MoneyBook() {
   const handleCloseModal = () => setShowModal(false);
 
   const handleDelete = (book) => {
-    console.log("delete");
+    console.log(book);
     setSelectedBook(book);
     setShowDeleteModal(true);
   };
@@ -29,7 +29,10 @@ function MoneyBook() {
       return;
     }
     try {
-      const response = await addBook({ name: input });
+      const response = await addBook({
+        name: input,
+        user_id: localStorage.getItem("user_id"),
+      });
 
       if (response.status !== 200) {
         alert(response.data.message);
@@ -48,7 +51,7 @@ function MoneyBook() {
   };
   const fetchBooks = async () => {
     try {
-      const { data } = await getAllBooks();
+      const { data } = await getAllBooks(localStorage.getItem("user_id"));
       // console.log(data);
       setBooks(data);
     } catch (error) {
@@ -58,12 +61,12 @@ function MoneyBook() {
 
   const confirmDelete = async () => {
     // 执行删除逻辑
-    console.log(`Deleting book: ${selectedBook}`);
+
     setShowDeleteModal(false);
     setSelectedBook(null);
     // 在这里调用删除 API 或从状态中移除书本
 
-    await deleteBook(selectedBook);
+    await deleteBook(selectedBook._id);
     fetchBooks();
   };
   useEffect(() => {
@@ -81,24 +84,24 @@ function MoneyBook() {
           >
             <img
               src="/cover.svg"
-              onClick={() => navigate(`/moneybook/${book.name}`)}
+              onClick={() => navigate(`/moneybook/${book._id}`)}
             ></img>
             <h2
               className="font-semibold text-gray-800 cursor-pointer my-8"
-              onClick={() => navigate(`/moneybook/${book.name}`)}
+              onClick={() => navigate(`/moneybook/${book._id}`)}
             >
               {book.name}
             </h2>
             {/* 删除按钮 */}
             <button
-              onClick={() => handleDelete(book.name)}
+              onClick={() => handleDelete(book)}
               className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 font-bold text-2xl"
             >
               &times;
             </button>
             <div
               className="w-full h-full  "
-              onClick={() => navigate(`/moneybook/${book.name}`)}
+              onClick={() => navigate(`/moneybook/${book._id}`)}
             ></div>
           </div>
         ))}
@@ -151,7 +154,7 @@ function MoneyBook() {
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white w-1/3 p-6 rounded-lg shadow-lg">
             <h3 className="text-gray-800 font-semibold mb-4">
-              Are you sure to delete '{selectedBook}'?
+              Are you sure to delete '{selectedBook.name}'?
             </h3>
             <div className="flex justify-end gap-4">
               <button

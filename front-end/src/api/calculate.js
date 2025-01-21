@@ -1,9 +1,9 @@
 import apiClient from "./apiClient";
 
-export const addCalculateTable = async (book, formula, data, field) => {
+export const addCalculateTable = async (book_id, formula, data, field) => {
   try {
     const response = await apiClient.post("/book/calculate", {
-      book: book,
+      book_id: book_id,
       formula: formula,
       data: data,
       field: field,
@@ -15,9 +15,9 @@ export const addCalculateTable = async (book, formula, data, field) => {
   }
 };
 
-export const getCalculateTable = async (book) => {
+export const getCalculateTable = async (book_id) => {
   try {
-    const response = await apiClient.get(`/book/calculate?book=${book}`);
+    const response = await apiClient.get(`/book/calculate?book_id=${book_id}`);
     return response; // 返回新添加的书籍信息或状态
   } catch (error) {
     console.error(error);

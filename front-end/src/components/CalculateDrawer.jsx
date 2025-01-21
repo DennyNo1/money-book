@@ -12,7 +12,7 @@ function CalculateDrawer({ allFields = [], showDrawer, closeDrawer, docs }) {
   const [fields, setFields] = useState(allFields); // 本地的所有field
   const [localDocs, setLocalDocs] = useState(docs);
   const [formula, setFormula] = useState(""); // 用户输入的公式
-  const { name } = useParams();
+  const { book_id } = useParams();
   // 创建状态存储选中的字段
   const [selectedFields, setSelectedFields] = useState([]);
   const [calculateTable, setCalculateTable] = useState([]);
@@ -97,7 +97,7 @@ function CalculateDrawer({ allFields = [], showDrawer, closeDrawer, docs }) {
 
       console.log(result);
 
-      await addCalculateTable(name, formula, result, newFieldName);
+      await addCalculateTable(book_id, formula, result, newFieldName);
       //清空表格
       closeDrawer();
       setNewFieldName("");
@@ -112,7 +112,7 @@ function CalculateDrawer({ allFields = [], showDrawer, closeDrawer, docs }) {
   //从数据库获取计算表的数据
   const fetchCalculateTable = async () => {
     try {
-      const { data } = await getCalculateTable(name);
+      const { data } = await getCalculateTable(book_id);
       setCalculateTable(data.data);
     } catch (error) {
       console.error("Error fetching table:", error);

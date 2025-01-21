@@ -22,7 +22,7 @@ const App = () => {
           <Route path="/" element={<Home></Home>}></Route>
           <Route path="/moneybook" element={<MoneyBook></MoneyBook>}></Route>
           {/* 这里使用平级路由。子路由是子组件镶嵌到父组件里去了。 */}
-          <Route path="/moneybook/:name" element={<MoneyTable />} />{" "}
+          <Route path="/moneybook/:book_id" element={<MoneyTable />} />{" "}
           <Route path="/login" element={<Login />}></Route>
           <Route path="/register" element={<Register />}></Route>
           <Route path="/code" element={<Code />}></Route>

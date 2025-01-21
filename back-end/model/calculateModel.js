@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const calculateSchema = new mongoose.Schema({
-  book: {
+  book_id: {
     type: String,
     required: true,
   },
