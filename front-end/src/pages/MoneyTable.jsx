@@ -89,6 +89,7 @@ export default function MoneyTable() {
       handleCloseModal();
       fetchFields();
       setInput(""); // Clear the input after submission
+      setSelectedValue("");
     } catch (error) {
       console.error("Error submitting form:", error);
       //alert("There was an error adding the book. Please try again.");
@@ -421,7 +422,7 @@ export default function MoneyTable() {
         {/* 新增field */}
         <button
           onClick={handleOpenModal}
-          className="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition duration-300"
+          className="px-6 py-3 mx-2 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition duration-300"
         >
           Add New Field
         </button>
@@ -447,7 +448,16 @@ export default function MoneyTable() {
                     className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 mt-2"
                     required
                     value={input}
-                    onChange={(e) => setInput(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value.includes(" ")) {
+                        // 如果包含空格，显示错误提示
+                        alert("Input cannot contain spaces.");
+                        // 可以在这里设置一个状态来显示错误信息，而不是使用 alert
+                      } else {
+                        setInput(value); // 更新输入值
+                      }
+                    }}
                   />
                   <select
                     id="options"

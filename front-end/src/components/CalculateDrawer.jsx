@@ -48,6 +48,7 @@ function CalculateDrawer({ allFields = [], showDrawer, closeDrawer, docs }) {
       alert("Please enter a formula!");
       return;
     }
+    console.log("当前公式:", formula); // 打印公式
 
     try {
       //localDocs：
@@ -75,27 +76,28 @@ function CalculateDrawer({ allFields = [], showDrawer, closeDrawer, docs }) {
       // ]
       //这里的row就是上方的一个对象
       const result = localDocs.map((row) => {
-        // selectedFields:
-        //         [
-        //   "shuzi",
-        //   "s",
-        //   "444",
-        //   "1"
-        // ]
+        console.log("当前行数据:", row); // 打印当前行的数据
+        console.log("选中的字段:", selectedFields); // 打印选中的字段
         const context = selectedFields.reduce((acc, col) => {
           // 返回一个acc对象。每个属性，即被被选中的field，后面的值即原本的值。本质上就是筛选docs，返回被选择的kv，k=被选中的field。
           acc[col] = parseFloat(row[col]) || 0; // 将值转换为数字类型，默认值为 0
           //
           return acc;
         }, {});
+        console.log("生成的 context:", context); // 打印生成的 context 对象
+
+        const functionArgs = Object.keys(context);
+        const functionBody = `return ${formula}`;
+        console.log("动态函数参数:", functionArgs);
+        console.log("动态函数体:", functionBody);
 
         // 使用动态函数计算公式
-        return new Function(...Object.keys(context), `return ${formula}`)(
+        const calculatedValue = new Function(...functionArgs, functionBody)(
           ...Object.values(context)
         );
+        console.log("计算结果:", calculatedValue); // 打印计算结果
+        return calculatedValue;
       });
-
-      console.log(result);
 
       await addCalculateTable(book_id, formula, result, newFieldName);
       //清空表格
@@ -134,7 +136,16 @@ function CalculateDrawer({ allFields = [], showDrawer, closeDrawer, docs }) {
             className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 mt-4 mb-10"
             required
             value={newFieldName}
-            onChange={(e) => setNewFieldName(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value.includes(" ")) {
+                // 如果包含空格，显示错误提示
+                alert("Input cannot contain spaces.");
+                // 可以在这里设置一个状态来显示错误信息，而不是使用 alert
+              } else {
+                setNewFieldName(e.target.value); // 更新输入值
+              }
+            }}
           />
           <label className="block text-gray-700 mb-4">
             Select Field To Calculate
