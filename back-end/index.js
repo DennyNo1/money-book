@@ -26,6 +26,10 @@ app.use(cors());
   app.use("/api", codeRoutes);
   app.use("/api", userRoutes);
   app.use("/api", calculateRoutes);
+  //测试用
+  app.get("/", (req, res) => {
+    res.send("Hello from the backend!");
+  });
 
   // 启动服务器
   app.listen(process.env.PORT || 5000, () => {
