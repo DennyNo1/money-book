@@ -27,7 +27,7 @@ app.use(cors());
   app.use("/api", userRoutes);
   app.use("/api", calculateRoutes);
   //测试用
-  app.get("/", (req, res) => {
+  app.get("/api", (req, res) => {
     res.send("Hello from the backend!");
   });
 
