@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/api"; // 替换为你的后端地址
+const API_URL = process.env.REACT_APP_API_URL; // 替换为你的后端地址
 
 export const login = async (user) => {
   try {

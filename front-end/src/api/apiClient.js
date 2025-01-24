@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-  baseURL: "http://localhost:5000/api", // 替换为你的 API 基础 URL
+  baseURL: process.env.REACT_APP_API_URL, // 替换为你的 API 基础 URL
 });
 
 // 请求拦截器：添加 JWT Token 到 Header
