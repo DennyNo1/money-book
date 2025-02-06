@@ -3,11 +3,11 @@ name: Deploy Frontend
 on:
   push:
     branches:
-      - master # 监听 master 分支的 push 事件
+      - master  # 监听 master 分支的 push 事件
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest # GitHub Actions 运行环境
+    runs-on: ubuntu-latest  # GitHub Actions 运行环境
 
     steps:
       - name: Checkout 代码
@@ -22,8 +22,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18
-          cache: "npm"
-          working-directory: front-end  # 指定前端项目目录，确保它在该目录下查找 package-lock.json
+          cache: "npm"  # 设置缓存，避免每次安装依赖都重新下载
 
       - name: 安装前端依赖
         run: |
@@ -38,9 +37,10 @@ jobs:
       - name: 上传前端构建文件到服务器
         uses: appleboy/scp-action@master
         with:
-          host: ${{ vars.SERVER_HOST }} # 目标服务器的地址
-          username: ${{ vars.SERVER_USER }} # 服务器的用户名
-          key: ${{ secrets.SERVER_SSH_KEY }} # 用于 SSH 的私钥
-          source: "front-end/build/*" # 上传 build 目录中的所有文件
-          target: "/money-book/front-end/" # 上传到服务器的目标路径
+          host: ${{ vars.SERVER_HOST }}  # 目标服务器的地址
+          username: ${{ vars.SERVER_USER }}  # 服务器的用户名
+          key: ${{ secrets.SERVER_SSH_KEY }}  # 用于 SSH 的私钥
+          source: "front-end/build/*"  # 上传 build 目录中的所有文件
+          target: "/money-book/front-end/"  # 上传到服务器的目标路径
+
 
