@@ -36,9 +36,10 @@ jobs:
       - name: 上传前端构建文件到服务器
         uses: appleboy/scp-action@master
         with:
-          host: ${{ vars.SERVER_HOST }} # 目标服务器的地址
-          username: ${{ vars.SERVER_USER }} # 服务器的用户名
-          key: ${{ secrets.SERVER_SSH_KEY }} # 用于 SSH 的私钥
+          host: ${{ secrets.SERVER_HOST }}  # 服务器地址
+          username: root  # 登录用户名
+          password: ${{ secrets.SERVER_PASSWORD }}  # 使用的密码
+          port: 22  # SSH 默认端口，若非默认请调整
           source: "front-end/build/*" # 上传 build 目录中的所有文件
           target: "/money-book/front-end/" # 上传到服务器的目标路径
 
