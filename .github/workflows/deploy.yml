@@ -13,8 +13,8 @@ jobs:
       - name: Checkout 代码
         uses: actions/checkout@v3
 
-      - name: 设置 npm registry 为官方源
-        run: npm config set registry https://registry.npmjs.org/
+
+       
 
       - name: 设置 Node.js 环境
         uses: actions/setup-node@v3
@@ -26,6 +26,7 @@ jobs:
       - name: 安装前端依赖
         run: |
           cd front-end  # 进入前端项目目录
+          run: npm config set registry https://registry.npmjs.org/
           npm install   # 安装前端依赖
 
       - name: 构建前端项目
