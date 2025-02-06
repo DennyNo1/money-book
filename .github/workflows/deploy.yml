@@ -10,6 +10,11 @@ jobs:
     runs-on: ubuntu-latest # GitHub Actions 运行环境
 
     steps:
+      - name: 查看前端目录内容
+        run: |
+          cd front-end
+          ls -al
+
       - name: Checkout 代码
         uses: actions/checkout@v3
 
