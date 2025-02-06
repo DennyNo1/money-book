@@ -41,5 +41,5 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}  # 使用的密码
           port: 22  # SSH 默认端口，若非默认请调整
           source: "front-end/build/*"  # 不变，确保是正确的源路径
-          target: "/money-book/front-end"  # 确保路径不要重复
+          target: "/money-book/"  # 确保路径不要重复
 
