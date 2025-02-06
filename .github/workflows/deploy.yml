@@ -22,7 +22,8 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18
-          cache: "npm"  # 设置缓存，避免每次安装依赖都重新下载
+          cache: "npm"
+          cache-dependency-path: "front-end/package-lock.json"  # 关键：告诉 GitHub 缓存 front-end 依赖
 
       - name: 安装前端依赖
         run: |
