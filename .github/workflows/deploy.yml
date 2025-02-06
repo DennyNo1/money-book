@@ -23,6 +23,7 @@ jobs:
         with:
           node-version: 18
           cache: "npm"
+          working-directory: front-end  # 指定前端项目目录，确保它在该目录下查找 package-lock.json
 
       - name: 安装前端依赖
         run: |
