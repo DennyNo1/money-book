@@ -10,8 +10,8 @@ jobs:
     runs-on: ubuntu-latest # GitHub Actions 运行环境
 
     steps:
-      - name: Checkout 代码
-        uses: actions/checkout@v3
+      # - name: Checkout 代码
+      #   uses: actions/checkout@v3
 
       - name: 安装 Node.js
         uses: actions/setup-node@v3
