@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import styled from "styled-components"; //它允许你使用 JavaScript 来编写css
 import { Link, useNavigate } from "react-router-dom";
 
@@ -6,52 +6,208 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import { register, checkUsername } from "../api/user";
+import FormInput from "../components/FormInput";
+
 
 function Register() {
   const navigate = useNavigate(); //hook函数，用于导航
 
-  //用于双向绑定的useState hook函数
+  const [validatePass, setValidatePass] = useState(true);
+  //强制用邮箱登录
+  const formFields = [
+    { name: "email", type: "text", placeholder: "Email" },
+    { name: "nickname", type: "text", placeholder: "Nickname" },
+    { name: "password", type: "password", placeholder: "Password" },
+    { name: "confirmPassword", type: "password", placeholder: "Confirm password" }
+  ];
   //表单数据
   const [values, setValues] = useState({
-    username: "",
+    // username: "",
+    //由email替代username
+    email: "",
     nickname: "",
     password: "",
     confirmPassword: "",
   });
+  // 验证状态
+  const [validationState, setValidationState] = useState({
+    email: { isValid: false, error: "Email cannot be empty" },
+    nickname: { isValid: false, error: "Nickname cannot be empty" },
+    password: { isValid: false, error: "Password required" },
+    confirmPassword: { isValid: false, error: "Confirm password required" }
+  });
 
-  //判断用户名是否重复
-  const [isUsernameAvailable, setIsUsernameAvailable] = useState(null);
+  function handleChange(event) {
+    setValues({ ...values, [event.target.name]: event.target.value });
+  }
+  // 如果没有values.password，放在组件外部更好，不会跟着组件渲染时，重新渲染。
+  // 现在由于需要依赖values.password进行验证，使用useMemo，只在values.password变化时，重新渲染。
+
+  const validators = useMemo(() => (
+    {
+      email: [
+        //还有一种写法是：isValid: (val) => val.trim() !== "",两者等价，即省略了return，但我非常不推荐这个省略写法
+        {
+          isValid: (val) => {
+            return val.trim() !== "";
+          },
+          errorMsg: "Email cannot be empty"
+        },
+        {
+          isValid: (val) => {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+          },
+          errorMsg: "Invalid email format"
+        },
+        {
+          isValid: async (val) => {
+            const { data } = await checkUsername(val);
+            return data.status !== false;
+          },
+          errorMsg: "Email already taken"
+        }
+      ],
+      // 可以添加其他字段的验证
+      password: [
+        {
+          isValid: (val) => {
+            return val.trim() !== "";
+          },
+          errorMsg: "Password cannot be empty"
+        },
+        {
+          isValid: (val) => {
+            return val.length >= 6;
+          },
+          errorMsg: "Password must be at least 6 characters long"
+        }
+      ],
+      nickname: [
+        {
+          isValid: (val) => {
+            return val.trim() !== "";
+          },
+          errorMsg: "Nickname cannot be empty"
+        },
+        {
+          isValid: (val) => {
+            return val.length <= 20;
+          },
+          errorMsg: "Nickname must be at most 20 characters long"
+        }
+      ],
+      confirmPassword: [
+        {
+          isValid: (val) => {
+            return val.trim() !== "";
+          },
+          errorMsg: "Confirm password cannot be empty"
+        },
+        {
+          isValid: (val) => {
+            return val === values.password;
+          },
+          errorMsg: "Passwords do not match"
+        }
+      ]
+    }), [values.password]);
+
+
+
+
+  //对某个输入框失去焦点的单独处理
+  async function handleBlur(event) {
+    const { name, value } = event.target;
+
+    // 获取当前字段的验证规则
+    const fieldValidators = validators[name] || [];
+
+    // 执行验证链
+    for (const validator of fieldValidators) {
+      //这里使用promise.resolve，是因为validator.isValid是一个异步和同步混合的函数，需要使用await来等待结果。
+      const result = await Promise.resolve(validator.isValid(value));
+      if (!result) {
+        setValidationState({
+          ...validationState,
+          [name]: { isValid: false, error: validator.errorMsg }
+        });
+        return;
+      }
+    }
+    // 对单个输入框的验证通过
+    setValidationState({
+      ...validationState,
+      [name]: { isValid: true, error: "" }
+    });
+
+  }
+
+
+
   //处理提交
   const handleSubmit = async (event) => {
     event.preventDefault();
+    //提交前，对所有输入框进行验证
 
-    if (handleValidation()) {
-      const { password, username, nickname } = values;
-      const user = {
-        password: password,
-        nickname: nickname,
-        username: username,
-      };
-      //console.log("ok");
-      //它这里并没有为前端发送请求独立出一个方法，我觉得不好。
-      const { data } = await register(user);
 
-      if (data.status === false) {
-        toast.error(data.msg, toastOptions);
-      } else {
-        navigate("/");
+    for (const field of formFields) {
+      //对每个输入框逐个进行验证
+      const name = field.name;
+      const fieldValidators = validators[name] || [];
+
+      for (const validator of fieldValidators) {
+        const result = await Promise.resolve(validator.isValid(values[name]));
+
+        if (!result) {
+          setValidationState({
+            ...validationState,
+            [name]: { isValid: false, error: validator.errorMsg }
+          });
+          // 添加抖动类
+          // 找到对应的错误消息元素并添加抖动类
+          // 在表单验证失败时
+          setTimeout(() => {
+            document.querySelectorAll('.error-message').forEach(el => {
+              if (el.textContent) {
+                el.classList.add('error-scale');
+
+                // 动画结束后移除类，以便下次可以再次触发
+                setTimeout(() => {
+                  el.classList.remove('error-scale');
+                }, 500);
+              }
+            });
+          }, 10);
+          setValidatePass(false);
+          //一旦验证失败，就停止对这个输入框后续的验证
+          break;
+        }
       }
     }
+    if (!validatePass) {
+      return;
+    }
+    console.log("ok");
+    //不允许连续提交
+    const { password, nickname, email } = values;
+    const user = {
+      password: password,
+      nickname: nickname,
+      email: email,
+    };
+
+    //它这里并没有为前端发送请求独立出一个方法，我觉得不好。
+    const { data } = await register(user);
+
+    if (data.status === false) {
+      toast.error(data.msg, toastOptions);
+    } else {
+      navigate("/");
+    }
+
   };
 
-  //{...values}: 这是对象展开运算符（spread operator）。它会将 values 对象中的所有键值对复制到一个新的对象中。这样做的目的是保留现有的状态值，同时只更新特定的键。
-  //event.target.name 通常是你在 <input> 或其他表单元素上设置的 name 属性
-  //event.target.value: 这是用户输入或选择的当前值
 
-  function handleChange(event) {
-    console.log(event);
-    setValues({ ...values, [event.target.name]: event.target.value });
-  }
 
   const toastOptions = {
     position: "bottom-right",
@@ -61,54 +217,8 @@ function Register() {
     theme: "dark",
   };
 
-  //处理用户名输入的额外函数
-  function handleUsernameChange(event) {
-    setValues({ ...values, [event.target.name]: event.target.value });
-    const newUsername = event.target.value;
 
-    if (newUsername.length === 0) {
-      setIsUsernameAvailable(null);
-      return;
-    }
 
-    // 防抖处理，确保在用户停止输入后再发送请求
-    clearTimeout(window.debounceTimer);
-    window.debounceTimer = setTimeout(async () => {
-      try {
-        await checkUsername(newUsername);
-        setIsUsernameAvailable(true);
-      } catch (error) {
-        setIsUsernameAvailable(false);
-        toast.error("The username already be used", toastOptions);
-      }
-    }, 500); // 500 毫秒防抖
-  }
-
-  function handleValidation() {
-    //解构赋值
-    const { password, confirmPassword, username, nickname } = values;
-    if (password !== confirmPassword) {
-      //我们一般用组件库了
-      toast.error(
-        "Password and confirm password should be same.",
-        toastOptions
-      );
-      return false;
-    } else if (username.length < 6) {
-      toast.error("Username should be longer than 6 characters.", toastOptions);
-      return false;
-    } else if (password.length < 6) {
-      toast.error(
-        "Password should be longer than 6 characters .",
-        toastOptions
-      );
-      return false;
-    } else if (nickname === "") {
-      toast.error("Please input nickname ", toastOptions);
-      return false;
-    }
-    return true;
-  }
 
   return (
     <>
@@ -116,42 +226,20 @@ function Register() {
         <form onSubmit={(event) => handleSubmit(event)}>
           <div className="brand">
             <img src="/logo.svg" alt="Logo"></img>
-            <h1>money-book</h1>
+            <h1>money book</h1>
           </div>
-          <div>
-            <input
-              type="text"
-              placeholder="Username"
-              name="username"
-              onChange={handleUsernameChange}
-            ></input>
-            {/* {isUsernameAvailable === null ? null : isUsernameAvailable ? (
-              <span style={{ color: "green" }}>Username available</span>
-            ) : (
-              <span style={{ color: "red" }}>Username already taken</span>
-            )} */}
-          </div>
-          <input
-            type="text"
-            placeholder="Nickname"
-            name="nickname"
-            onChange={handleChange}
-          ></input>
-          <input
-            type="password"
-            placeholder="Password"
-            name="password"
-            onChange={handleChange}
-          ></input>
-          <input
-            type="password"
-            placeholder="Confirm password"
-            name="confirmPassword"
-            onChange={handleChange}
-          ></input>
+          {formFields.map(field => (
+            <FormInput
+              key={field.name}
+              {...field}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              error={validationState[field.name].error}
+            />
+          ))}
           <button type="submit">Create User</button>
           <span>
-            already have an account? <Link to="/login">Login</Link>
+            Already have an account? <Link to="/login">Login</Link>
           </span>
         </form>
       </FormContainer>
@@ -219,9 +307,10 @@ const FormContainer = styled.div`
       background-color: #2f855a; /* 按钮深绿色背景 */
     }
   }
-  span {
+  span 
+  {
     color: #2f855a; /* 深绿色文字 */
-    text-transform: uppercase;
+    // text-transform: uppercase;
     a {
       color: #38a169; /* 绿色链接 */
       text-decoration: none;
@@ -231,6 +320,21 @@ const FormContainer = styled.div`
       }
     }
   }
+@keyframes scale {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.error-message {
+  color: red;
+  display: inline-block; /* 确保变换效果正确应用 */
+  transition: all 0.3s ease;
+}
+
+.error-scale {
+  animation: scale 0.5s ease;
+}
 `;
 
 export default Register;
