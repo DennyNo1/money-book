@@ -4,7 +4,11 @@ const algorithm = "aes-256-cbc";
 const secretKey = process.env.SECRET_KEY;
 const iv = process.env.IV;
 const User = require("../model/userModel");
+const RefreshToken = require("../model/refreshTokenModel");
 const { generateToken } = require("../utils/jwtHelper");
+const cookieParser = require('cookie-parser');
+
+//加密函数
 const encrypt = (text) => {
   const cipher = crypto.createCipheriv(
     algorithm,
@@ -28,38 +32,61 @@ const decrypt = (encryptedText) => {
 
 //登录
 exports.login = async (req, res) => {
-  console.log("login");
+
+  //与register统一
+  const { user } = req.body;
+  if (!user || !user.email || !user.password) {
+    return res.status(400).json({ message: "Email and password are required" });
+  }
   try {
-    const { user } = req.body;
-    if (!user) {
-      return res.status(400).json({ message: "User are required" });
-    }
-    console.log(user.username);
-
-    // const users = await User.find();
-    // 查看所有用户
-    //console.log(users);
-
-    //用用户名去查询
-    const queryUser = await User.findOne({ username: user.username });
+    //根据email查询
+    const queryUser = await User.findOne({ email: user.email });
     if (queryUser) {
       //解密密码
       const decryptedPassword = decrypt(queryUser.password);
-      //比较密码
+      //登录成功
       if (decryptedPassword === user.password) {
         const username = queryUser.username;
-        console.log({ username });
-        const jwt = generateToken({ username });
+        //为了防止用户短时间内多次登录，可能造成payload重复，所以在payload中添加tokenid，用uuid生成
+        const accessPayload = {
+          "tokenType": "access",
+          "tokenId": uuidv4(),
+          email: queryUser.email, nickName: queryUser.nickName, userId: queryUser._id,
+          exp: Math.floor(Date.now() / 1000) + 15 * 60
+        };
+        const refreshPayload = {
+          "tokenType": "refresh",
+          "tokenId": uuidv4(),
+          email: queryUser.email, nickName: queryUser.nickName, userId: queryUser._id,
+          exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60
+        };
+        const accessToken = generateToken(accessPayload, "accessToken");
+        const refreshToken = generateToken(refreshPayload, "refreshToken");
 
-        console.log(jwt);
+        //安全起见
+        const { _id, userId, nickname } = queryUser;
+        const result = { _id, userId, nickname };
+
+        //为了后续方便，这里的一个field由userId改为userModel
+        const refreshTokenDoc = new RefreshToken({
+          tokenId: refreshPayload.tokenId,
+          userModel: result,
+          tokenExp: refreshPayload.exp,
+          createdAt: Date.now(),
+          isRevoked: false,
+        });
+        await refreshTokenDoc.save();
+        res.cookie("refreshToken", refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          maxAge: 30 * 24 * 60 * 60 * 1000,
+        });
         //登录成功
         return res
           .status(200)
-          .json({ message: "login success", token: jwt, user: queryUser });
+          .json({ message: "login success", accessToken: accessToken, user: queryUser });
       } else {
-        return res
-          .status(400)
-          .json({ message: "Password does not match username" });
+        return res.status(400).json({ message: "Password does not match username" });
       }
     } else {
       return res.status(400).json({ message: "User is not registered" });
@@ -79,7 +106,7 @@ exports.register = async (req, res) => {
     }
     //对doc进行加密
     user.password = encrypt(user.password);
-    //目前先允许相同的用户名存在
+    //现在是以邮箱登录，所以允许相同用户名存在
     const insertResult = await mongoose.connection.db
       .collection("user")
       .insertOne(user);
@@ -92,6 +119,37 @@ exports.register = async (req, res) => {
     res.status(500).json({ message: "Error adding doc", error });
   }
 };
+
+exports.refreshToken = async (req, res) => {
+  const token = req.cookies.refreshToken;  // 从 cookie 中提取
+  const secretKey = process.env.ACCESS_SECRET;
+  if (!token) return res.status(401).json({ message: 'No refresh token' });
+
+  try {
+    //同样自动验证过期
+    const payload = jwt.verify(token, secretKey);
+
+    // 检查 token 是否被撤销（黑名单机制），或者数据库中状态
+    const refreshTokenDoc = await RefreshToken.findOne({ tokenId: payload.tokenId });
+    if (!refreshTokenDoc || refreshTokenDoc.isRevoked) {
+      return res.status(401).json({ message: 'Invalid or expired refresh token' });
+    }
+    const queryUser = refreshTokenDoc.userModel;
+    // 生成新 access token
+    const newAccessPayload = {
+      "tokenType": "access",
+      "tokenId": uuidv4(),
+      email: queryUser.email, nickName: queryUser.nickName, userId: queryUser._id,
+      exp: Math.floor(Date.now() / 1000) + 15 * 60
+    };
+    const newAccessToken = generateToken(newAccessPayload, "accessToken");
+    res.json({ accessToken: newAccessToken, user: queryUser });
+  } catch (err) {
+    return res.status(401).json({ message: 'Invalid or expired refresh token' });
+  }
+
+};
+
 
 //用户名重复检测
 exports.checkUsername = async (req, res) => {

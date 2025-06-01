@@ -23,7 +23,7 @@ function Login() {
         console.log(response.status);
         if (response.status === 200) {
           //登录成功把用户信息放在localStorage
-          localStorage.setItem("money-book-token", response.data.token);
+          localStorage.setItem("accessToken", response.data.token);
           const user = response.data.user;
           localStorage.setItem("user_name", user.username);
           localStorage.setItem("user_id", user._id);
