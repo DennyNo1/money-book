@@ -15,17 +15,16 @@ function Login() {
     if (handleValidation()) {
       console.log("ok");
       const { password, username } = values;
-      const user = { password: password, username: username };
-
+      const user = { password: password, email: username };
       //只有登录认证成功是200，其他都是4xx
       try {
         const response = await login(user);
         console.log(response.status);
         if (response.status === 200) {
           //登录成功把用户信息放在localStorage
-          localStorage.setItem("accessToken", response.data.token);
+          localStorage.setItem("accessToken", response.data.accessToken);
           const user = response.data.user;
-          localStorage.setItem("user_name", user.username);
+          localStorage.setItem("user_name", user.nickname);
           localStorage.setItem("user_id", user._id);
           localStorage.setItem("user_nickname", user.nickname);
           navigate("/");

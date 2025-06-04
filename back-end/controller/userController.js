@@ -7,9 +7,14 @@ const User = require("../model/userModel");
 const RefreshToken = require("../model/refreshTokenModel");
 const { generateToken } = require("../utils/jwtHelper");
 const cookieParser = require('cookie-parser');
+const { v4: uuidv4 } = require("uuid");
+const jwt = require("jsonwebtoken");
+
 
 //加密函数
 const encrypt = (text) => {
+  // console.log("encrypt");
+
   const cipher = crypto.createCipheriv(
     algorithm,
     Buffer.from(secretKey, "hex"),
@@ -35,15 +40,18 @@ exports.login = async (req, res) => {
 
   //与register统一
   const { user } = req.body;
+
   if (!user || !user.email || !user.password) {
     return res.status(400).json({ message: "Email and password are required" });
   }
   try {
     //根据email查询
     const queryUser = await User.findOne({ email: user.email });
+
     if (queryUser) {
       //解密密码
       const decryptedPassword = decrypt(queryUser.password);
+
       //登录成功
       if (decryptedPassword === user.password) {
         const username = queryUser.username;
@@ -51,14 +59,16 @@ exports.login = async (req, res) => {
         const accessPayload = {
           "tokenType": "access",
           "tokenId": uuidv4(),
-          email: queryUser.email, nickName: queryUser.nickName, userId: queryUser._id,
-          exp: Math.floor(Date.now() / 1000) + 15 * 60
+          email: queryUser.email,
+          nickName: queryUser.nickName,
+          userId: queryUser._id
         };
         const refreshPayload = {
           "tokenType": "refresh",
           "tokenId": uuidv4(),
-          email: queryUser.email, nickName: queryUser.nickName, userId: queryUser._id,
-          exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60
+          email: queryUser.email,
+          nickName: queryUser.nickName,
+          userId: queryUser._id
         };
         const accessToken = generateToken(accessPayload, "accessToken");
         const refreshToken = generateToken(refreshPayload, "refreshToken");
@@ -67,11 +77,14 @@ exports.login = async (req, res) => {
         const { _id, userId, nickname } = queryUser;
         const result = { _id, userId, nickname };
 
-        //为了后续方便，这里的一个field由userId改为userModel
+        //计算30天后的过期时间（用于数据库中的 refreshToken 记录）
+        const tokenExpiration = new Date();
+        tokenExpiration.setDate(tokenExpiration.getDate() + 30);
+
         const refreshTokenDoc = new RefreshToken({
           tokenId: refreshPayload.tokenId,
           userModel: result,
-          tokenExp: refreshPayload.exp,
+          tokenExp: tokenExpiration,
           createdAt: Date.now(),
           isRevoked: false,
         });
@@ -92,14 +105,15 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: "User is not registered" });
     }
   } catch (error) {
-    res.status(500).json({ message: "login error", error });
+    console.error("Login error:", error);
+    res.status(500).json({ message: "Login error", error });
   }
 };
 
 //注册
 exports.register = async (req, res) => {
   try {
-    console.log("Received request");
+    console.log("/user/register");
     const { user } = req.body;
     if (!user) {
       return res.status(400).json({ message: "Doc are required" });
@@ -122,7 +136,7 @@ exports.register = async (req, res) => {
 
 exports.refreshToken = async (req, res) => {
   const token = req.cookies.refreshToken;  // 从 cookie 中提取
-  const secretKey = process.env.ACCESS_SECRET;
+  const secretKey = process.env.JWT_SECRET_KEY;
   if (!token) return res.status(401).json({ message: 'No refresh token' });
 
   try {
@@ -139,8 +153,9 @@ exports.refreshToken = async (req, res) => {
     const newAccessPayload = {
       "tokenType": "access",
       "tokenId": uuidv4(),
-      email: queryUser.email, nickName: queryUser.nickName, userId: queryUser._id,
-      exp: Math.floor(Date.now() / 1000) + 15 * 60
+      email: queryUser.email,
+      nickName: queryUser.nickName,
+      userId: queryUser._id
     };
     const newAccessToken = generateToken(newAccessPayload, "accessToken");
     res.json({ accessToken: newAccessToken, user: queryUser });

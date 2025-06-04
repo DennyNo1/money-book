@@ -21,7 +21,7 @@ function Home() {
   const [isDrawerVisible, setDrawerVisible] = useState(false);
   //判断登录，未登录则跳转
   useEffect(() => {
-    const token = localStorage.getItem("money-book-token");
+    const token = localStorage.getItem("accessToken");
     if (!token) {
       console.warn("No token found. Redirecting to /login...");
       navigate("/login");

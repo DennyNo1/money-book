@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const secretKey = process.env.ACCESS_SECRET;
+const secretKey = process.env.JWT_SECRET_KEY;
 
 // 验证 Token 的中间件
 function verifyToken(req, res, next) {

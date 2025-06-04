@@ -11,6 +11,7 @@ import FormInput from "../components/FormInput";
 
 function Register() {
   const navigate = useNavigate(); //hook函数，用于导航
+  console.log()
 
   const [validatePass, setValidatePass] = useState(true);
   //强制用邮箱登录
