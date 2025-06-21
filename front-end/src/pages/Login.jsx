@@ -11,6 +11,7 @@ function Login() {
   //登录处理逻辑
   const handleSubmit = async (event) => {
     event.preventDefault();
+    console.log('ok')
 
     if (handleValidation()) {
       console.log("ok");
@@ -27,17 +28,18 @@ function Login() {
           localStorage.setItem("user_name", user.nickname);
           localStorage.setItem("user_id", user._id);
           localStorage.setItem("user_nickname", user.nickname);
+
+          console.log(navigator); // 显示浏览器的 User-Agent 字符串
+
+
           navigate("/");
+
         }
       } catch (error) {
         toast.error(error.response.data.message, toastOptions);
       }
     }
   };
-
-  //{...values}: 这是对象展开运算符（spread operator）。它会将 values 对象中的所有键值对复制到一个新的对象中。这样做的目的是保留现有的状态值，同时只更新特定的键。
-  //event.target.name 通常是你在 <input> 或其他表单元素上设置的 name 属性
-  //event.target.value: 这是用户输入或选择的当前值
 
   //用于双向绑定的useState hook函数
   //表单数据
@@ -48,7 +50,6 @@ function Login() {
 
   //实现双向绑定
   function handleChange(event) {
-    console.log(event);
     setValues({ ...values, [event.target.name]: event.target.value });
   }
 
@@ -64,10 +65,10 @@ function Login() {
     //解构赋值
     const { password, username } = values;
     if (username.length <= 3) {
-      toast.error("Username should be longer than 3 characters.", toastOptions);
+      toast.error("Email should be longer than 3 characters.", toastOptions);
       return false;
     } else if (password.length < 6) {
-      toast.error("Password should be  6 characters at least. ", toastOptions);
+      toast.error("Password should be 6 characters at least.", toastOptions);
       return false;
     }
     return true;
@@ -79,6 +80,9 @@ function Login() {
         <form
           onSubmit={(event) => handleSubmit(event)}
           className="bg-green-100"
+          autoComplete="on"
+          id="login-form"
+          name="login-form"
         >
           <div className="brand">
             <img src="logo.svg" alt="Logo"></img>
@@ -86,16 +90,24 @@ function Login() {
           </div>
           <input
             type="text"
-            placeholder="Username"
             name="username"
-            onChange={handleChange}
+            id="username"
+            placeholder="Email"
+            autoComplete="username"
+            onChange={(e) => handleChange({ ...e, target: { ...e.target, name: "username" } })}
+            value={values.username}
+            required
           ></input>
 
           <input
             type="password"
             placeholder="Password"
             name="password"
+            id="password"
+            autoComplete="current-password"
             onChange={handleChange}
+            value={values.password}
+            required
           ></input>
 
           <button type="submit">Login</button>

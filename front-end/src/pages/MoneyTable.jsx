@@ -190,7 +190,7 @@ export default function MoneyTable() {
     CS: <CSTable docs={docs} />,
   };
 
-  const setCalculated = () => {};
+  const setCalculated = () => { };
 
   // 使用 useState 来管理 input 列表
   const [inputs, setInputs] = useState([]);

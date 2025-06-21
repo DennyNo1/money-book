@@ -1,180 +1,175 @@
-import React from "react";
-import "../input.css"; // 确保引入了 Tailwind CSS
+import React, { useEffect, useState } from "react";
+import "../input.css";
 import { useNavigate } from "react-router-dom";
-
-import { useEffect, useState } from "react";
-import { Card, Col, Row, Statistic } from "antd";
 import {
-  ArrowDownOutlined,
-  ArrowUpOutlined,
-  CaretRightOutlined,
-  RightCircleTwoTone,
+  Card,
+  Row,
+  Col,
+  Button,
+  Layout,
+  Menu,
+  Dropdown,
+  Avatar,
+  Typography
+} from "antd";
+import {
+  UserOutlined,
+  LogoutOutlined,
+  PieChartOutlined,
+  WalletOutlined,
+  KeyOutlined
 } from "@ant-design/icons";
-import { getCSMarketIndex, getStockIndex } from "../api";
-import { Spin, Drawer, Button } from "antd";
-import Profile from "../components/Profile";
+
+const { Header, Content } = Layout;
+const { Title, Text } = Typography;
 
 function Home() {
   const navigate = useNavigate();
-  const [CSIndex, setCSIndex] = useState([]);
-  const [StockIndex, setStockIndex] = useState({});
-  const [isDrawerVisible, setDrawerVisible] = useState(false);
-  //判断登录，未登录则跳转
+  const [username, setUsername] = useState("用户");
+
+  // 判断登录，未登录则跳转
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     if (!token) {
       console.warn("No token found. Redirecting to /login...");
       navigate("/login");
+    } else {
+      // 从本地存储获取用户名，如果有的话
+      const storedUsername = localStorage.getItem("username");
+      if (storedUsername) {
+        setUsername(storedUsername);
+      }
     }
   }, [navigate]);
 
-  function formatDate(data) {
-    console.log(data);
-    //提取第一个字符串中的饰品指数数值
-    const matchIndex = data[0].match(/饰品指数(\d+\.\d+)/);
-    const indexValue = matchIndex ? parseFloat(matchIndex[1]) : null;
-
-    // 提取第二个字符串中的百分比
-    const matchPercentage = data[1].match(/(\d+\.\d+%)/);
-    const percentageValue = matchPercentage ? matchPercentage[1] : null;
-
-    return [indexValue, percentageValue];
-  }
-  const fetchCSIndex = async () => {
-    const response = await getCSMarketIndex();
-    setCSIndex(formatDate(response.data.data));
-  };
-  const fetchStockIndex = async () => {
-    const response = await getStockIndex();
-    // console.log(response.data);
-    setStockIndex(response.data);
-  };
-
-  useEffect(() => {
-    fetchCSIndex();
-    //fetchStockIndex();
-  }, []);
-  const handleClick = (destination) => {
+  const handleNavigate = (destination) => {
     navigate(destination);
-    // 在这里添加点击事件的处理逻辑
-  };
-  const handleMouseEnter = () => {
-    setDrawerVisible(true);
   };
 
-  const handleMouseLeave = (e) => {
-    if (!e.currentTarget.contains(e.relatedTarget)) {
-      setDrawerVisible(false);
-    }
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("username");
+    navigate("/login");
   };
+
+  const userMenu = (
+    <Menu>
+      <Menu.Item key="profile" icon={<UserOutlined />}>
+        个人资料
+      </Menu.Item>
+      <Menu.Divider />
+      <Menu.Item key="logout" icon={<LogoutOutlined />} onClick={handleLogout}>
+        退出登录
+      </Menu.Item>
+    </Menu>
+  );
+
   return (
-    <div>
-      <div className="flex justify-center items-center h-screen w-screen bg-gradient-to-r from-green-100 to-white ">
-        <div className="w-auto h-auto grid grid-cols-3 gap-4  justify-center items-center">
-          <div
-            onClick={() => handleClick("/moneybook")}
-            className="border-2 w-48 h-48 flex justify-center items-center rounded-full border- transition-transform duration-300 transform hover:scale-105"
-          >
-            <img
-              src="/money.svg"
-              className="w-full h-full rounded-full transition-opacity duration-500 opacity-0"
-              onLoad={(e) => (e.target.style.opacity = 1)}
-            />
-          </div>
-          <div
-            onClick={() => handleClick("/code")}
-            className="border-2 w-48 h-48 flex justify-center items-center rounded-full border- transition-transform duration-300 transform hover:scale-105"
-          >
-            <img
-              src="/code.svg"
-              className="w-full h-full rounded-lg transition-opacity duration-500 opacity-0"
-              onLoad={(e) => (e.target.style.opacity = 1)}
-            />
-          </div>
-          {/* <div
-            onClick={() => handleClick("/test")}
-            className="border-2 w-48 h-48 flex justify-center items-center rounded-full border- transition-transform duration-300 transform hover:scale-105"
-          >
-            <div>test</div>
-          </div> */}
+    <Layout className="min-h-screen">
+      {/* AppBar */}
+      <Header className="bg-white shadow-md px-6 flex justify-between items-center">
+        <div className="flex items-center">
+          <img src="/logo.svg" alt="Logo" className="h-8 mr-4" />
+          <Title level={4} style={{ margin: 0 }}>财务管理系统</Title>
         </div>
-        <Profile ></Profile>
-        <div className="absolute top-6 left-0 right-0 w-1/3">
-          <div onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-            <Button>
-              <div className="text-green-600"> Financial index</div>
-            </Button>
+        <Dropdown overlay={userMenu} placement="bottomRight">
+          <div className="flex items-center cursor-pointer">
+            <Avatar icon={<UserOutlined />} className="mr-2" />
+            <Text>{username}</Text>
+          </div>
+        </Dropdown>
+      </Header>
 
-            {/* 抽屉 */}
-            <Drawer
-              title="Financial Index"
-              onClose={() => {
-                setDrawerVisible(false);
-              }}
-              open={isDrawerVisible}
-              placement="left"
-              mask={false}
+      {/* 主内容区域 */}
+      <Content className="p-6 bg-gradient-to-r from-green-100 to-white">
+        <Row gutter={[24, 24]}>
+          {/* 记账管理区域 */}
+          <Col xs={24} md={12}>
+            <Card
+              title={<div className="flex items-center"><WalletOutlined className="mr-2" />记账管理</div>}
+              className="h-80 shadow-md hover:shadow-lg transition-shadow"
+              extra={<Button type="primary" onClick={() => handleNavigate('/moneybook')}>进入</Button>}
             >
-              <div>
-                <Row gutter={16}>
-                  <Col span={12}>
-                    <Card bordered={false}>
-                      {CSIndex.length > 0 ? (
-                        <Statistic
-                          title="饰品指数"
-                          value={CSIndex[0]}
-                          precision={2}
-                        />
-                      ) : (
-                        <Spin></Spin>
-                      )}
-                    </Card>
-                  </Col>
-                  <Col span={12}>
-                    <Card bordered={false}>
-                      {CSIndex.length > 0 ? (
-                        <Statistic
-                          title="市场热度"
-                          value={CSIndex[1]}
-                          precision={2}
-                        />
-                      ) : (
-                        <Spin></Spin>
-                      )}
-                    </Card>
-                  </Col>
-                </Row>
+              <div className="flex flex-col h-56 justify-between">
+                <div className="text-center p-4">
+                  <img src="/money.svg" alt="记账" className="w-20 h-20 mx-auto mb-4" />
+                  <Text className="block mb-2 text-lg">管理您的财务记录</Text>
+                  <Text type="secondary" className="block">
+                    轻松记录日常收支，查看财务报表，合理规划预算
+                  </Text>
+                </div>
+                <Button
+                  type="default"
+                  icon={<WalletOutlined />}
+                  block
+                  onClick={() => handleNavigate('/moneybook')}
+                >
+                  开始记账
+                </Button>
               </div>
-            </Drawer>
-          </div>
-          {/* 有了微软财经，暂时不需要了 */}
-          {/* <Row gutter={16} className="mt-4">
-            <Col span={12}>
-              <Card bordered={false}>
-                {CSIndex.length > 0 ? (
-                  <Statistic
-                    title="纳斯达克100"
-                    value={StockIndex.nasdaq100Index}
-                    precision={2}
-                  />
-                ) : (
-                  <Spin></Spin>
-                )}
-              </Card>
-            </Col>
-            <Col span={12}>
-              <Card bordered={false}>
-                {CSIndex.length > 0 ? (
-                  <Statistic title="标普500" value={StockIndex.sp500Index} precision={2} />
-                ) : (
-                  <Spin></Spin>
-                )}
-              </Card>
-            </Col>
-          </Row> */}
-        </div>
-      </div>
-    </div>
+            </Card>
+          </Col>
+
+          {/* 密码管理区域 */}
+          <Col xs={24} md={12}>
+            <Card
+              title={<div className="flex items-center"><KeyOutlined className="mr-2" />密码管理</div>}
+              className="h-80 shadow-md hover:shadow-lg transition-shadow"
+              extra={<Button type="primary" onClick={() => handleNavigate('/code')}>进入</Button>}
+            >
+              <div className="flex flex-col h-56 justify-between">
+                <div className="text-center p-4">
+                  <img src="/code.svg" alt="密码" className="w-20 h-20 mx-auto mb-4" />
+                  <Text className="block mb-2 text-lg">管理您的密码和代码</Text>
+                  <Text type="secondary" className="block">
+                    安全存储重要密码，管理代码片段，便捷查询
+                  </Text>
+                </div>
+                <Button
+                  type="default"
+                  icon={<KeyOutlined />}
+                  block
+                  onClick={() => handleNavigate('/code')}
+                >
+                  管理密码
+                </Button>
+              </div>
+            </Card>
+          </Col>
+
+          {/* 饼状图区域 - 独占一行 */}
+          <Col xs={24}>
+            <Card
+              title={<div className="flex items-center"><PieChartOutlined className="mr-2" />财务统计</div>}
+              className="shadow-md hover:shadow-lg transition-shadow"
+            >
+              <div className="flex justify-center items-center" style={{ height: "400px" }}>
+                <div className="text-center">
+                  <PieChartOutlined style={{ fontSize: '80px', color: '#1890ff' }} />
+                  <p className="mt-4 text-gray-500">此处将显示财务数据饼状图</p>
+                  <div className="mt-6">
+                    <Row gutter={48} className="text-center">
+                      <Col span={8}>
+                        <Text type="secondary">总收入</Text>
+                        <div className="text-xl font-bold text-green-500">¥12,580.00</div>
+                      </Col>
+                      <Col span={8}>
+                        <Text type="secondary">总支出</Text>
+                        <div className="text-xl font-bold text-red-500">¥8,320.50</div>
+                      </Col>
+                      <Col span={8}>
+                        <Text type="secondary">结余</Text>
+                        <div className="text-xl font-bold text-blue-500">¥4,259.50</div>
+                      </Col>
+                    </Row>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </Col>
+        </Row>
+      </Content>
+    </Layout>
   );
 }
 
