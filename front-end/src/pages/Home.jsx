@@ -175,20 +175,16 @@ function Home() {
           {/* 饼状图区域 - 独占一行 */}
           <Col xs={24}>
             <Card
-              title={<div className="flex items-center"><PieChartOutlined className="mr-2" />财务统计</div>}
+              title={<div className="flex items-center"><PieChartOutlined className="mr-2" />我的现金流</div>}
               className="shadow-md hover:shadow-lg transition-shadow"
             >
               <div className="flex justify-center items-center">
-                <div className="text-center rounded-lg p-6 w-full">
+                <div className="text-center rounded-lg px-6 w-full">
 
                   {/* 使用 flex 布局让图表和统计数据并排 */}
                   {/* flex-direction: row (默认) */}
                   {/* 即默认flex是水平方向 */}
                   <div className="flex items-center gap-8">
-
-
-
-
                     {/* 左侧占领水平的1 */}
                     <div className="flex-1">
                       <div className="space-y-4">
@@ -211,11 +207,15 @@ function Home() {
 
                     {/* 右侧占领水平的1 。因为左侧也占领水平的1，所以总水平是2，而右侧的flex-1 会占领水平的1/2 */}
                     <div className="flex-1 ">
+                      <Button
+                        type="primary"
+                      >
+                        开始记账
+                      </Button>
                       <div className="h-[35vh]">
                         <ChartComponent data={pieChart} />
                       </div>
                     </div>
-
                   </div>
                 </div>
               </div>
