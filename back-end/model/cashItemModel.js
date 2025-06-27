@@ -9,17 +9,17 @@ const cashItemSchema = new mongoose.Schema(
         },
         balance: {
             //前端传过来字符串
-            type: mongoose.Schema.Types.Decimal128,
+            type: Number,
             required: true,
-            default: mongoose.Types.Decimal128.fromString('0.00')
+            default: 0.00
             // 移除复杂的业务验证
         },
-        creatUser: {
+        createUser: {
             type: mongoose.Schema.Types.ObjectId,
             required: true,
             ref: 'user'
         },
-        creatDate: {
+        createDate: {
             type: Date,
             default: Date.now
         },

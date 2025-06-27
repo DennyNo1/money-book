@@ -24,10 +24,8 @@ function Login() {
         if (response.status === 200) {
           //登录成功把用户信息放在localStorage
           localStorage.setItem("accessToken", response.data.accessToken);
-          const user = response.data.user;
-          localStorage.setItem("user_name", user.nickname);
-          localStorage.setItem("user_id", user._id);
-          localStorage.setItem("user_nickname", user.nickname);
+          localStorage.setItem("user", response.data.user);
+
 
           console.log(navigator); // 显示浏览器的 User-Agent 字符串
 

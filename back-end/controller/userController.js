@@ -70,7 +70,9 @@ exports.login = async (req, res) => {
           nickName: queryUser.nickName,
           userId: queryUser._id
         };
+        //短期token
         const accessToken = generateToken(accessPayload, "accessToken");
+        //长期token
         const refreshToken = generateToken(refreshPayload, "refreshToken");
 
         //安全起见
@@ -97,7 +99,7 @@ exports.login = async (req, res) => {
         //登录成功
         return res
           .status(200)
-          .json({ message: "login success", accessToken: accessToken, user: queryUser });
+          .json({ message: "Login success", accessToken: accessToken, user: queryUser });
       } else {
         return res.status(400).json({ message: "Password does not match username" });
       }
@@ -158,7 +160,7 @@ exports.refreshToken = async (req, res) => {
       userId: queryUser._id
     };
     const newAccessToken = generateToken(newAccessPayload, "accessToken");
-    res.json({ accessToken: newAccessToken, user: queryUser });
+    res.json({ accessToken: newAccessToken, user: queryUser, message: "Refresh token" });
   } catch (err) {
     return res.status(401).json({ message: 'Invalid or expired refresh token' });
   }

@@ -13,7 +13,7 @@ const cashHistoryScheme = new mongoose.Schema(
             default: mongoose.Types.Decimal128.fromString('0.00')
             // 移除复杂的业务验证
         },
-        creatUser: {
+        createUser: {
             type: mongoose.Schema.Types.ObjectId,
             required: true,
             ref: 'user'

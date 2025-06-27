@@ -4,7 +4,9 @@ const CashHistory = require('../model/cashHistoryModel')
 const User = require('../model/userModel');
 
 const createCashItem = async (req, res) => {
-    const { itemName, balance, userId } = req.body
+    const { itemName, balance } = req.body
+    const userId = req.user.userId
+
     // 检查任意字段为空
     // 基础字段存在性验证
     if (!itemName || !balance || !userId) {
@@ -35,7 +37,7 @@ const createCashItem = async (req, res) => {
         // itemName 重复性检查
         const existingItem = await CashItem.findOne({
             itemName: itemName.trim(),
-            creatUser: userId,
+            createUser: userId,
 
         });
 
@@ -49,7 +51,7 @@ const createCashItem = async (req, res) => {
         //
         const cashItme = new CashItem({
             //后面两个参数默认自带现在时间
-            itemName, balance, creatUser: userId
+            itemName, balance, createUser: userId
         })
         await cashItme.save();
         const cashHistory = new CashHistory({
@@ -70,6 +72,19 @@ const createCashItem = async (req, res) => {
         });
     }
 }
+
+async function getAllCashItem(req, res) {
+    const userId = req.user.userId
+    try {
+        const cashItems = await CashItem.find({ createUser: userId })
+        res.status(200).json(cashItems)
+    }
+    catch (error) {
+        console.error('Error getting cash items:', error)
+    }
+}
+
+module.exports = { createCashItem, getAllCashItem }
 
 
 

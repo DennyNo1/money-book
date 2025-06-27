@@ -10,7 +10,13 @@ import {
   Menu,
   Dropdown,
   Avatar,
-  Typography
+  Typography,
+  Modal,
+  Input,
+  InputNumber,
+  Space,
+  message,
+  Form
 } from "antd";
 import {
   UserOutlined,
@@ -20,29 +26,28 @@ import {
   KeyOutlined
 } from "@ant-design/icons";
 import ChartComponent from "../components/ChartComponent";
-
+import { createCashItem, getAllCashItem } from "../api/cash";
 const { Header, Content } = Layout;
 const { Title, Text } = Typography;
 
 function Home() {
   const navigate = useNavigate();
   const [username, setUsername] = useState("用户");
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const [loading, setLoading] = useState(false)
+  const [form] = Form.useForm();
+  const [cashItems, setCashItems] = useState([]);
 
   // 判断登录，未登录则跳转
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) {
-      console.warn("No token found. Redirecting to /login...");
-      navigate("/login");
-    } else {
-      // 从本地存储获取用户名，如果有的话
-      const storedUsername = localStorage.getItem("username");
-      if (storedUsername) {
-        setUsername(storedUsername);
-      }
-    }
-  }, [navigate]);
+    fetchCashItems();
+  }, []);
+  const fetchCashItems = async () => {
+    const response = await getAllCashItem();
+    setCashItems(response.data);
 
+  };
   const handleNavigate = (destination) => {
     navigate(destination);
   };
@@ -65,36 +70,106 @@ function Home() {
     </Menu>
   );
 
+  // 预定义漂亮的颜色池
+  const colorPool = [
+    'rgb(255, 99, 132)',   // 红色
+    'rgb(54, 162, 235)',   // 蓝色
+    'rgb(255, 205, 86)',   // 黄色
+    'rgb(75, 192, 192)',   // 青色
+    'rgb(153, 102, 255)',  // 紫色
+    'rgb(255, 159, 64)',   // 橙色
+    'rgb(199, 199, 199)',  // 灰色
+    'rgb(83, 102, 255)',   // 靛蓝
+    'rgb(255, 99, 255)',   // 品红
+    'rgb(99, 255, 132)'    // 绿色
+  ];
+
+
   const data = {
-    labels: [
-      'Red',
-      'Blue',
-      'Yellow'
-    ],
-    datasets: [{
-      label: 'My First Dataset',
-      data: [300, 50, 100],
-      backgroundColor: [
-        'rgb(255, 99, 132)',
-        'rgb(54, 162, 235)',
-        'rgb(255, 205, 86)'
-      ],
-      hoverOffset: 4
-    }]
+    labels: cashItems.map(item => item.itemName),
+    datasets: [
+      {
+        // label: '我的收入', // 第一个数据集
+        data: cashItems.map(item => parseFloat(item.balance)),
+        backgroundColor: cashItems.map((item, index) => colorPool[index % colorPool.length]),
+        hoverOffset: 4
+      },
+
+    ]
   };
   const options = {
     plugins: {
       title: {
         display: true,
-        text: '默认标题'
+        text: '我的现金流'
       }
     }
   }
   const pieChart = {
-    chartType: 'doughnut',
+    chartType: 'pie',
     chartData: data,
     chartOptions: options,
-    title: '我的现金流'
+  }
+
+
+
+  const handleCreateCashItem = async () => {
+    try {
+      // 🔑 自动验证所有字段
+      const values = await form.validateFields();
+      console.log('验证通过的值:', values);
+
+      setLoading(true);
+      const response = await createCashItem(values.itemName, values.balance);
+
+      if (response.status === 200) {
+        message.success(response.data.message);
+        form.resetFields(); // 重置表单
+
+        setModalOpen(false)
+      }
+    }
+    catch (error) {
+      if (error.errorFields) {
+        // 验证失败，Ant Design 会自动显示错误
+        console.log('验证失败:', error);
+      } else {
+        // API 错误处理
+        console.error('Create cash item error:', error);
+
+        // 🔑 组合处理
+        const errorHandler = {
+          400: () => message.error('请检查输入信息'),
+          401: () => {
+            console.log(error)
+            message.error(error.response.data.message);
+            // setTimeout(() => navigate('/login'), 1500);
+          },
+          409: () => {
+            // message.error('项目名称已存在，请使用不同名称');
+            form.setFields([{
+              name: 'itemName',
+              errors: ['该项目已建立']
+            }]);
+          },
+          500: () => message.error('服务器错误，请稍后重试'),
+          network: () => message.error('网络连接失败，请检查网络'),
+          default: () => message.error('操作失败，请重试')
+        };
+
+        if (error.response) {
+          const handler = errorHandler[error.response.status] || errorHandler.default;
+          handler();
+        } else if (error.request) {
+          errorHandler.network();
+        } else {
+          errorHandler.default();
+        }
+      }
+    } finally {
+      setLoading(false);
+      fetchCashItems();
+    }
   }
 
   return (
@@ -209,6 +284,10 @@ function Home() {
                     <div className="flex-1 ">
                       <Button
                         type="primary"
+                        onClick={() => {
+                          setModalOpen(true)
+
+                        }}
                       >
                         开始记账
                       </Button>
@@ -223,7 +302,63 @@ function Home() {
           </Col>
         </Row>
       </Content>
-    </Layout>
+
+      {/* modal的高度也是自适应的 */}
+      <Modal
+        width="30%"
+        title="添加你的现金项目"
+        open={modalOpen}
+        onOk={handleCreateCashItem}
+        okButtonProps={{ loading: loading }}
+        onCancel={() => {
+          setModalOpen(false);
+          form.resetFields(); // 关闭时重置表单
+        }}>
+
+        <Form
+          form={form}
+          layout="vertical"
+          // 这是jsx的语法
+          style={{ marginTop: 36, }}
+        >
+          <Form.Item
+            style={{ marginBottom: 16, }}
+            name="itemName"
+            // label="项目名称"
+            rules={[
+              { required: true, message: '请输入项目名称' },
+              { min: 1, message: '项目名称不能为空' },
+              { max: 50, message: '项目名称不能超过50个字符' }
+            ]}
+          >
+            <Input
+              placeholder="你的项目名"
+              style={{ height: '4vh' }}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="balance"
+            style={{ marginBottom: 36 }}
+            // label="金额"
+            rules={[
+              { required: true, message: '请输入金额' },
+              { type: 'number', min: 0.01, message: '金额必须大于0' }
+            ]}
+          >
+            <InputNumber
+              prefix="￥"
+              style={{ width: '100%', height: '4vh' }}
+              precision={2}
+              min={0}
+              controls={false}
+              parser={(value) => value?.replace(/\$\s?|(,*)/g, '')}
+              formatter={(value) => value ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : ''}
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
+    </Layout >
   );
 }
 
