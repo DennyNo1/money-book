@@ -16,17 +16,26 @@ import {
   InputNumber,
   Space,
   message,
-  Form
+  Form,
+  Popconfirm
 } from "antd";
 import {
   UserOutlined,
   LogoutOutlined,
   PieChartOutlined,
   WalletOutlined,
-  KeyOutlined
+  KeyOutlined,
+  DownOutlined,
+  AccountBookOutlined,
+  QuestionCircleOutlined
 } from "@ant-design/icons";
 import ChartComponent from "../components/ChartComponent";
-import { createCashItem, getAllCashItem } from "../api/cash";
+import { createCashItem, getAllCashItem, deleteCashItem } from "../api/cash";
+
+
+
+
+
 const { Header, Content } = Layout;
 const { Title, Text } = Typography;
 
@@ -37,20 +46,27 @@ function Home() {
 
   const [loading, setLoading] = useState(false)
   const [form] = Form.useForm();
+  //用于存储后端传回的所有饼状图的数据
   const [cashItems, setCashItems] = useState([]);
+
+  const amount = cashItems.reduce((acc, item) => acc + item.balance, 0);
 
   // 判断登录，未登录则跳转
   useEffect(() => {
     fetchCashItems();
   }, []);
-  const fetchCashItems = async () => {
-    const response = await getAllCashItem();
-    setCashItems(response.data);
 
-  };
+  //跳转页面
   const handleNavigate = (destination) => {
     navigate(destination);
   };
+  const fetchCashItems = async () => {
+    const response = await getAllCashItem();
+    setCashItems(response.data);
+    //对后端传回的数据进行处理，把项目名放入删除的下拉框
+
+  }
+
 
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
@@ -84,8 +100,8 @@ function Home() {
     'rgb(99, 255, 132)'    // 绿色
   ];
 
-
-  const data = {
+  //用于生成饼状图的数据，即处理后后端传回的数据
+  const pieData = {
     labels: cashItems.map(item => item.itemName),
     datasets: [
       {
@@ -107,7 +123,7 @@ function Home() {
   }
   const pieChart = {
     chartType: 'pie',
-    chartData: data,
+    chartData: pieData,
     chartOptions: options,
   }
 
@@ -171,6 +187,54 @@ function Home() {
       fetchCashItems();
     }
   }
+
+
+
+  const handleDeleteCashItem = async (itemId) => {
+    console.log(itemId)
+    const response = await deleteCashItem(itemId);
+    if (response.status === 200) {
+      message.success(response.data.message);
+      fetchCashItems();
+    }
+    else {
+      message.error(response.data.message);
+    }
+  }
+
+
+  const deleteItems = cashItems.map((item, index) => ({
+    label: (
+      <Popconfirm
+        title="Delete the item"
+        description={`Are you sure to delete ${item.itemName}?`}
+        okText="Yes"
+        cancelText="No"
+        icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
+        okType="danger"
+        onConfirm={() => handleDeleteCashItem(item._id)}
+      >
+        <div style={{
+          whiteSpace: 'normal',
+          wordWrap: 'break-word',
+          width: '100%', // 使用全宽
+          lineHeight: '1.2'
+        }}>
+          {item.itemName}
+        </div>
+      </Popconfirm>
+    ),
+    key: index.toString(),
+    icon: <AccountBookOutlined />,
+    danger: true,
+  }));
+  const menuProps = {
+    items: deleteItems,
+
+  };
+
+
+
 
   return (
     <Layout className="h-screen ">
@@ -264,37 +328,54 @@ function Home() {
                     <div className="flex-1">
                       <div className="space-y-4">
                         <div className="p-3 rounded-lg hover:bg-green-50 transition-colors duration-200">
-                          <Text type="secondary" className="block text-center text-sm">总收入</Text>
-                          <div className="text-lg font-bold text-green-500 text-center">¥12,580.00</div>
+                          <Text type="secondary" className="block text-center text-sm">总现金</Text>
+                          <div className="text-lg font-bold text-green-500 text-center">{amount}</div>
                         </div>
 
                         <div className="p-3 rounded-lg hover:bg-red-50 transition-colors duration-200">
                           <Text type="secondary" className="block text-center text-sm">总支出</Text>
-                          <div className="text-lg font-bold text-red-500 text-center">¥8,320.50</div>
+                          <div className="text-lg font-bold text-red-500 text-center">¥0</div>
                         </div>
 
                         <div className="p-3 rounded-lg hover:bg-blue-50 transition-colors duration-200">
                           <Text type="secondary" className="block text-center text-sm">结余</Text>
-                          <div className="text-lg font-bold text-blue-500 text-center">¥4,259.50</div>
+                          <div className="text-lg font-bold text-blue-500 text-center">¥0</div>
                         </div>
                       </div>
                     </div>
 
                     {/* 右侧占领水平的1 。因为左侧也占领水平的1，所以总水平是2，而右侧的flex-1 会占领水平的1/2 */}
+                    {/* 右侧占领水平的1 。因为左侧也占领水平的1，所以总水平是2，而右侧的flex-1 会占领水平的1/2 */}
                     <div className="flex-1 ">
-                      <Button
-                        type="primary"
-                        onClick={() => {
-                          setModalOpen(true)
+                      <div className="flex gap-2 mb-4">
+                        <Button
+                          type="primary"
+                          onClick={() => {
+                            setModalOpen(true)
+                          }}
+                        >
+                          开始记账
+                        </Button>
+                        <Dropdown
+                          placement="bottomLeft"
+                          menu={menuProps}
 
-                        }}
-                      >
-                        开始记账
-                      </Button>
+                          overlayStyle={{
+                            minWidth: '200px', // 设置最小宽度与按钮一致
+                            maxWidth: '200px'  // 设置最大宽度
+                          }}
+                        >
+                          <Button type="primary" danger >
+                            删除项目 <DownOutlined />
+                          </Button>
+                        </Dropdown>
+                      </div>
                       <div className="h-[35vh]">
                         <ChartComponent data={pieChart} />
                       </div>
                     </div>
+
+
                   </div>
                 </div>
               </div>

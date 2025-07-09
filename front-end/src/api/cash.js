@@ -20,3 +20,15 @@ export const getAllCashItem = async () => {
         throw error;
     }
 };
+
+// 软删除现金项目
+export const deleteCashItem = async (itemId) => {
+    try {
+        const response = await apiClient.delete(`/cash/${itemId}`);
+        return response;
+    } catch (error) {
+        console.error("Error deleting cash item:", error);
+        throw error;
+    }
+};
+

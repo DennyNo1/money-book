@@ -76,15 +76,67 @@ const createCashItem = async (req, res) => {
 async function getAllCashItem(req, res) {
     const userId = req.user.userId
     try {
-        const cashItems = await CashItem.find({ createUser: userId })
+        // 只查询未删除的项目
+        const cashItems = await CashItem.find({
+            createUser: userId,
+            isDeleted: false  // 过滤已软删除的项目
+        })
         res.status(200).json(cashItems)
     }
     catch (error) {
         console.error('Error getting cash items:', error)
+        res.status(500).json({
+            error: 'Server Error',
+            message: 'An internal server error occurred'
+        });
     }
 }
 
-module.exports = { createCashItem, getAllCashItem }
+async function deleteCashItem(req, res) {
+    const { _id } = req.params  // 支持body和params两种方式
+    const userId = req.user.userId
+
+    try {
+        // 检查项目是否存在且属于当前用户，且未被删除
+        const cashItem = await CashItem.findOne({
+            _id,
+            createUser: userId,
+            isDeleted: false
+        })
+
+        if (!cashItem) {
+            return res.status(404).json({
+                error: 'Cash item not found',
+                message: 'Cash item not found or already deleted'
+            })
+        }
+
+        // 软删除：只更新标记，不真正删除
+        await CashItem.findByIdAndUpdate(_id, {
+            isDeleted: true,
+            deletedAt: new Date(),
+            deletedBy: userId
+        })
+
+
+        return res.status(200).json({
+            message: 'Cash item deleted successfully',
+            deletedItem: {
+                id: _id,
+                itemName: cashItem.itemName
+            }
+        })
+    }
+    catch (error) {
+        console.error('Error deleting cash item:', error)
+        res.status(500).json({
+            error: 'Server Error',
+            message: 'An internal server error occurred while deleting the cash item'
+        });
+    }
+}
+
+module.exports = { createCashItem, getAllCashItem, deleteCashItem }
 
 
 

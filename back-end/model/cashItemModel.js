@@ -26,6 +26,20 @@ const cashItemSchema = new mongoose.Schema(
         updateDate: {
             type: Date,
             default: Date.now
+        },
+        // 软删除相关字段
+        isDeleted: {
+            type: Boolean,
+            default: false
+        },
+        deletedAt: {
+            type: Date,
+            default: null
+        },
+        deletedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'user',
+            default: null
         }
     }
 )
