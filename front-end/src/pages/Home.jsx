@@ -30,7 +30,8 @@ import {
   QuestionCircleOutlined
 } from "@ant-design/icons";
 import ChartComponent from "../components/ChartComponent";
-import { createCashItem, getAllCashItem, deleteCashItem } from "../api/cash";
+import ModalComponent from "../components/ModalComponent";
+import { createCashItem, getAllCashItem, deleteCashItem, getCashHistory, modifyCashItem } from "../api/cash";
 
 
 
@@ -43,48 +44,19 @@ function Home() {
   const navigate = useNavigate();
   const [username, setUsername] = useState("用户");
   const [modalOpen, setModalOpen] = useState(false);
-
   const [loading, setLoading] = useState(false)
+  // 是 Ant Design 的表单 Hook，用于创建和管理表单实例。
   const [form] = Form.useForm();
+  const [modifyForm] = Form.useForm();
   //用于存储后端传回的所有饼状图的数据
   const [cashItems, setCashItems] = useState([]);
-
   const amount = cashItems.reduce((acc, item) => acc + item.balance, 0);
+  const [showLineChart, setShowLineChart] = useState(false);
+  const [cashHistory, setCashHistory] = useState([]);
+  const [modifyModalOpen, setModifyModalOpen] = useState(false);
 
-  // 判断登录，未登录则跳转
-  useEffect(() => {
-    fetchCashItems();
-  }, []);
+  const [selectedItem, setSelectedItem] = useState({ itemName: '', balance: 0 });
 
-  //跳转页面
-  const handleNavigate = (destination) => {
-    navigate(destination);
-  };
-  const fetchCashItems = async () => {
-    const response = await getAllCashItem();
-    setCashItems(response.data);
-    //对后端传回的数据进行处理，把项目名放入删除的下拉框
-
-  }
-
-
-  const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("username");
-    navigate("/login");
-  };
-
-  const userMenu = (
-    <Menu>
-      <Menu.Item key="profile" icon={<UserOutlined />}>
-        个人资料
-      </Menu.Item>
-      <Menu.Divider />
-      <Menu.Item key="logout" icon={<LogoutOutlined />} onClick={handleLogout}>
-        退出登录
-      </Menu.Item>
-    </Menu>
-  );
 
   // 预定义漂亮的颜色池
   const colorPool = [
@@ -113,20 +85,103 @@ function Home() {
 
     ]
   };
-  const options = {
+
+
+
+
+
+  const pieOptions = {
+    // 响应式
+    responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       title: {
         display: true,
         text: '我的现金流'
+      }
+    },
+    // 添加点击事件处理器
+    onClick: (event, elements) => {
+      // 检查是否点击到了图表元素
+      if (elements.length > 0) {
+        const clickedElementIndex = elements[0].index;
+        const clickedItem = cashItems[clickedElementIndex];
+        // 执行对应的功能
+        handlePieChartClick(clickedItem, clickedElementIndex);
       }
     }
   }
   const pieChart = {
     chartType: 'pie',
     chartData: pieData,
-    chartOptions: options,
+    chartOptions: pieOptions,
   }
 
+
+
+
+
+  const lineData = {
+    labels: cashHistory.map(item => item.date),
+    datasets: [{
+      label: 'My First Dataset',
+      data: cashHistory.map(item => item.balance),
+      fill: false,
+      borderColor: 'rgb(75, 192, 192)',
+      tension: 0.1
+    }]
+  };
+
+  const lineOptions = {
+    plugins: {
+      title: {
+        display: true,
+        text: '我的折线图'
+      }
+    }
+  };
+
+  const lineChart = {
+    chartType: 'line',
+    chartData: lineData,
+    chartOptions: lineOptions,
+  };
+
+
+  // 判断登录，未登录则跳转
+  useEffect(() => {
+    fetchCashItems();
+  }, []);
+
+  //跳转页面
+  const handleNavigate = (destination) => {
+    navigate(destination);
+  };
+  const fetchCashItems = async () => {
+    const response = await getAllCashItem();
+    setCashItems(response.data);
+    //对后端传回的数据进行处理，把项目名放入删除的下拉框
+
+  }
+
+
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("username");
+    navigate("/login");
+  };
+
+
+
+
+  // 添加饼状图点击处理函数
+  const handlePieChartClick = async (clickedItem, index) => {
+
+    const response = await getCashHistory(clickedItem.itemName)
+    setCashHistory(response.data)
+    setShowLineChart(true)
+
+  };
 
 
   const handleCreateCashItem = async () => {
@@ -188,6 +243,65 @@ function Home() {
     }
   }
 
+  const handleModifyCashItem = async () => {
+    try {
+      // 🔑 自动验证所有字段
+      const values = await modifyForm.validateFields();
+      console.log('验证通过的值:', values);
+
+      setLoading(true);
+      const response = await modifyCashItem(selectedItem._id, values.balance);
+
+      if (response.status === 200) {
+        message.success(response.data.message);
+        modifyForm.resetFields(); // 重置表单
+        setModifyModalOpen(false)
+      }
+    }
+    catch (error) {
+      if (error.errorFields) {
+        // 验证失败，Ant Design 会自动显示错误
+        console.log('验证失败:', error);
+      } else {
+        // API 错误处理
+        console.error('Create cash item error:', error);
+
+        // 🔑 组合处理
+        const errorHandler = {
+          400: () => message.error('请检查输入信息'),
+          401: () => {
+            console.log(error)
+            message.error(error.response.data.message);
+            // setTimeout(() => navigate('/login'), 1500);
+          },
+          409: () => {
+            // message.error('项目名称已存在，请使用不同名称');
+            form.setFields([{
+              name: 'itemName',
+              errors: ['该项目已建立']
+            }]);
+          },
+          500: () => message.error('服务器错误，请稍后重试'),
+          network: () => message.error('网络连接失败，请检查网络'),
+          default: () => message.error('操作失败，请重试')
+        };
+
+        if (error.response) {
+          const handler = errorHandler[error.response.status] || errorHandler.default;
+          handler();
+        } else if (error.request) {
+          errorHandler.network();
+        } else {
+          errorHandler.default();
+        }
+      }
+    } finally {
+      setLoading(false);
+      fetchCashItems();
+    }
+  }
+
+
 
 
   const handleDeleteCashItem = async (itemId) => {
@@ -202,6 +316,20 @@ function Home() {
     }
   }
 
+
+
+
+  const userMenu = (
+    <Menu>
+      <Menu.Item key="profile" icon={<UserOutlined />}>
+        个人资料
+      </Menu.Item>
+      <Menu.Divider />
+      <Menu.Item key="logout" icon={<LogoutOutlined />} onClick={handleLogout}>
+        退出登录
+      </Menu.Item>
+    </Menu>
+  );
 
   const deleteItems = cashItems.map((item, index) => ({
     label: (
@@ -230,11 +358,39 @@ function Home() {
   }));
   const menuProps = {
     items: deleteItems,
-
   };
 
+  const modifyItems = cashItems.map((item, index) => ({
+    label: (
+      <div style={{
+        whiteSpace: 'normal',
+        wordWrap: 'break-word',
+        width: '100%', // 使用全宽
+        lineHeight: '1.2'
+      }}>
+        {item.itemName}
+        <button></button>
+      </div>
 
+    ),
+    key: index.toString(),
+    icon: <AccountBookOutlined />,
+    onClick: (menuInfo) => {
 
+      const clickedItem = cashItems[parseInt(menuInfo.key)];
+      console.log(clickedItem)
+      setSelectedItem(clickedItem)
+      setModifyModalOpen(true)
+      modifyForm.setFieldsValue({
+        itemName: clickedItem.itemName,    // 使用当前点击的 item
+        // 使用当前点击的 item
+      });
+    }
+
+  }));
+  const modifyMenuProps = {
+    items: modifyItems,
+  };
 
   return (
     <Layout className="h-screen ">
@@ -281,7 +437,14 @@ function Home() {
               </div>
             </Card>
           </Col>
-
+          {/* 
+          xs = extra small（≥0px，超小屏幕，如手机）
+          sm = small（≥576px，小屏幕）
+          md = medium（≥768px，中等屏幕，如平板）
+          lg = large（≥992px，大屏幕）
+          xl = extra large（≥1200px，超大屏幕）
+          xxl = extra extra large（≥1600px，超超大屏幕） 
+          */}
           {/* 密码管理区域 */}
           <Col xs={24} md={12}>
             <Card
@@ -315,67 +478,87 @@ function Home() {
           <Col xs={24}>
             <Card
               title={<div className="flex items-center"><PieChartOutlined className="mr-2" />我的现金流</div>}
-              className="shadow-md hover:shadow-lg transition-shadow"
+              className="shadow-md hover:shadow-lg transition-shadow  "
+              bodyStyle={{ padding: 0 }}  // 去除 Card 的默认 padding
             >
-              <div className="flex justify-center items-center">
-                <div className="text-center rounded-lg px-6 w-full">
+              <div className="flex justify-center items-center h-[26rem]  ">
+                <div className="text-center rounded-lg px-6 w-full border-2 h-full ">
 
                   {/* 使用 flex 布局让图表和统计数据并排 */}
                   {/* flex-direction: row (默认) */}
                   {/* 即默认flex是水平方向 */}
-                  <div className="flex items-center gap-8">
+                  <div className="flex items-center h-full">
                     {/* 左侧占领水平的1 */}
-                    <div className="flex-1">
-                      <div className="space-y-4">
-                        <div className="p-3 rounded-lg hover:bg-green-50 transition-colors duration-200">
-                          <Text type="secondary" className="block text-center text-sm">总现金</Text>
-                          <div className="text-lg font-bold text-green-500 text-center">{amount}</div>
-                        </div>
+                    <div className="w-1/3 ">
 
-                        <div className="p-3 rounded-lg hover:bg-red-50 transition-colors duration-200">
-                          <Text type="secondary" className="block text-center text-sm">总支出</Text>
-                          <div className="text-lg font-bold text-red-500 text-center">¥0</div>
-                        </div>
-
-                        <div className="p-3 rounded-lg hover:bg-blue-50 transition-colors duration-200">
-                          <Text type="secondary" className="block text-center text-sm">结余</Text>
-                          <div className="text-lg font-bold text-blue-500 text-center">¥0</div>
-                        </div>
+                      <div className="p-3 rounded-lg hover:bg-green-50 transition-colors duration-200">
+                        <Text type="secondary" className="block text-center text-sm">总现金</Text>
+                        <div className="text-lg font-bold text-green-500 text-center">{amount}</div>
                       </div>
+
+                      <div className="p-3 rounded-lg hover:bg-red-50 transition-colors duration-200">
+                        <Text type="secondary" className="block text-center text-sm">总支出</Text>
+                        <div className="text-lg font-bold text-red-500 text-center">¥0</div>
+                      </div>
+
+                      <div className="p-3 rounded-lg hover:bg-blue-50 transition-colors duration-200">
+                        <Text type="secondary" className="block text-center text-sm">结余</Text>
+                        <div className="text-lg font-bold text-blue-500 text-center">¥0</div>
+                      </div>
+
                     </div>
 
                     {/* 右侧占领水平的1 。因为左侧也占领水平的1，所以总水平是2，而右侧的flex-1 会占领水平的1/2 */}
                     {/* 右侧占领水平的1 。因为左侧也占领水平的1，所以总水平是2，而右侧的flex-1 会占领水平的1/2 */}
-                    <div className="flex-1 ">
-                      <div className="flex gap-2 mb-4">
-                        <Button
-                          type="primary"
-                          onClick={() => {
-                            setModalOpen(true)
-                          }}
-                        >
-                          开始记账
-                        </Button>
-                        <Dropdown
-                          placement="bottomLeft"
-                          menu={menuProps}
+                    <div className="w-2/3 h-full">
 
-                          overlayStyle={{
-                            minWidth: '200px', // 设置最小宽度与按钮一致
-                            maxWidth: '200px'  // 设置最大宽度
-                          }}
-                        >
-                          <Button type="primary" danger >
-                            删除项目 <DownOutlined />
+                      <div className=" flex  h-full w-full">
+                        <div className="flex gap-2 mb-4">
+                          <Button
+                            type="primary"
+                            onClick={() => {
+                              setModalOpen(true)
+                            }}
+                          >
+                            开始记账
                           </Button>
-                        </Dropdown>
+                          <Dropdown
+                            placement="bottomLeft"
+                            menu={menuProps}
+
+                            overlayStyle={{
+                              minWidth: '200px', // 设置最小宽度与按钮一致
+                              maxWidth: '200px'  // 设置最大宽度
+                            }}
+                          >
+                            <Button type="primary" danger >
+                              删除项目 <DownOutlined />
+                            </Button>
+                          </Dropdown>
+                          <Dropdown
+                            placement="bottomLeft"
+                            menu={modifyMenuProps}
+                            overlayStyle={{
+                              minWidth: '200px', // 设置最小宽度与按钮一致
+                              maxWidth: '200px'  // 设置最大宽度
+                            }}
+                          >
+                            <Button type="primary"
+                              style={{
+                                backgroundColor: '#1E90FF',
+                                borderColor: '#1E90FF',
+                                color: '#fff'                // 自定义文字色
+                              }} >
+                              修改数值 <DownOutlined />
+                            </Button>
+                          </Dropdown>
+                        </div>
+                        <div className="w-1/2 h-full">
+                          <ChartComponent data={pieChart} /></div>
+                        {showLineChart && <ChartComponent data={lineChart} />}
                       </div>
-                      <div className="h-[35vh]">
-                        <ChartComponent data={pieChart} />
-                      </div>
+
                     </div>
-
-
                   </div>
                 </div>
               </div>
@@ -383,62 +566,23 @@ function Home() {
           </Col>
         </Row>
       </Content>
+      <ModalComponent modalOpen={modalOpen} setModalOpen={setModalOpen} handleOk={handleCreateCashItem} loading={loading} form={form} title="添加你的现金项目" />
+      <ModalComponent
+        modalOpen={modifyModalOpen}
+        setModalOpen={setModifyModalOpen}
+        handleOk={handleModifyCashItem}
+        loading={loading}
+        form={modifyForm}
+        title="修改你的现金项目"
+        disabled={true}
+        itemName={selectedItem.itemName}
+        buttonStyle={{ backgroundColor: '#1E90FF', borderColor: '#1E90FF', color: '#fff' }}
 
-      {/* modal的高度也是自适应的 */}
-      <Modal
-        width="30%"
-        title="添加你的现金项目"
-        open={modalOpen}
-        onOk={handleCreateCashItem}
-        okButtonProps={{ loading: loading }}
-        onCancel={() => {
-          setModalOpen(false);
-          form.resetFields(); // 关闭时重置表单
-        }}>
+      />
 
-        <Form
-          form={form}
-          layout="vertical"
-          // 这是jsx的语法
-          style={{ marginTop: 36, }}
-        >
-          <Form.Item
-            style={{ marginBottom: 16, }}
-            name="itemName"
-            // label="项目名称"
-            rules={[
-              { required: true, message: '请输入项目名称' },
-              { min: 1, message: '项目名称不能为空' },
-              { max: 50, message: '项目名称不能超过50个字符' }
-            ]}
-          >
-            <Input
-              placeholder="你的项目名"
-              style={{ height: '4vh' }}
-            />
-          </Form.Item>
 
-          <Form.Item
-            name="balance"
-            style={{ marginBottom: 36 }}
-            // label="金额"
-            rules={[
-              { required: true, message: '请输入金额' },
-              { type: 'number', min: 0.01, message: '金额必须大于0' }
-            ]}
-          >
-            <InputNumber
-              prefix="￥"
-              style={{ width: '100%', height: '4vh' }}
-              precision={2}
-              min={0}
-              controls={false}
-              parser={(value) => value?.replace(/\$\s?|(,*)/g, '')}
-              formatter={(value) => value ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : ''}
-            />
-          </Form.Item>
-        </Form>
-      </Modal>
+
+
     </Layout >
   );
 }

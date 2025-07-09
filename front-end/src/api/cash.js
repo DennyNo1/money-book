@@ -32,3 +32,23 @@ export const deleteCashItem = async (itemId) => {
     }
 };
 
+export const getCashHistory = async (itemName) => {
+    try {
+        const response = await apiClient.get(`/cash/history/${itemName}`);
+        return response;
+    } catch (error) {
+        console.error("Error getting cash history:", error);
+        throw error;
+    }
+};
+
+export const modifyCashItem = async (itemId, balance) => {
+    try {
+        const response = await apiClient.put(`/cash/${itemId}`, { balance });
+        return response;
+    } catch (error) {
+        console.error("Error modifying cash item:", error);
+        throw error;
+    }
+};
+

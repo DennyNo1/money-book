@@ -73,8 +73,69 @@ const createCashItem = async (req, res) => {
     }
 }
 
+
+//假设同一个用户项目名有重复
+async function modifyCashItem(req, res) {
+    const { balance } = req.body
+    const { _id } = req.params
+    const userId = req.user.userId
+    // 检查任意字段为空
+    // 基础字段存在性验证
+    if (!balance || !userId || !_id) {
+        return res.status(400).json({
+            error: 'Missing required fields',
+            message: 'balance, userId, and _id are required'
+        });
+    }
+
+    // balance 数字类型验证
+    //isNaN：检查是否"不是数字"
+    //isFinite() - 检查是否为有限数字
+    if (isNaN(parseFloat(balance)) || !isFinite(balance)) {
+        return res.status(400).json({
+            error: 'Invalid balance',
+            message: 'balance must be a valid number'
+        });
+    }
+    try {
+        const cashItem = await CashItem.findById(_id)
+        if (!cashItem) {
+            return res.status(404).json({
+                error: 'Cash item not found',
+                message: 'Cash item not found'
+            })
+        }
+        cashItem.balance = balance
+        await cashItem.save()
+
+
+        const cashHistory = new CashHistory({
+            itemName: cashItem.itemName, balance, createUser: userId
+        })
+        await cashHistory.save()
+
+        return res.status(200).json({
+            message: 'Cash item modified successfully',
+            modifiedItem: {
+                id: cashItem._id,
+                itemName: cashItem.itemName,
+                balance: cashItem.balance
+            }
+        })
+    }
+    catch (error) {
+        console.error('Error modifying cash item:', error)
+        res.status(500).json({
+            error: 'Server Error',
+            message: 'An internal server error occurred'
+        });
+    }
+}
+
+
 async function getAllCashItem(req, res) {
     const userId = req.user.userId
+
     try {
         // 只查询未删除的项目
         const cashItems = await CashItem.find({
@@ -92,10 +153,38 @@ async function getAllCashItem(req, res) {
     }
 }
 
-async function deleteCashItem(req, res) {
-    const { _id } = req.params  // 支持body和params两种方式
+async function getCashHistory(req, res) {
+    //目前只能自己查自己
     const userId = req.user.userId
+    const { itemName } = req.params
+    if (!itemName) {
+        return res.status(400).json({
+            error: 'Missing required fields',
+            message: 'itemName are required'
+        });
+    }
+    try {
+        const cashHistory = await CashHistory.find({ createUser: userId, itemName: itemName })
+        res.status(200).json(cashHistory)
+    }
+    catch (error) {
+        console.error('Error getting cash items:', error)
+        res.status(500).json({
+            error: 'Server Error',
+            message: 'An internal server error occurred'
+        });
+    }
+}
 
+async function deleteCashItem(req, res) {
+    const { _id } = req.params  // 
+    const userId = req.user.userId
+    if (!_id) {
+        return res.status(400).json({
+            error: 'Missing required fields',
+            message: '_id are required'
+        });
+    }
     try {
         // 检查项目是否存在且属于当前用户，且未被删除
         const cashItem = await CashItem.findOne({
@@ -136,7 +225,7 @@ async function deleteCashItem(req, res) {
     }
 }
 
-module.exports = { createCashItem, getAllCashItem, deleteCashItem }
+module.exports = { createCashItem, getAllCashItem, deleteCashItem, getCashHistory, modifyCashItem }
 
 
 

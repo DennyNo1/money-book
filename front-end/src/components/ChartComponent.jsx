@@ -65,7 +65,7 @@ function ChartComponent(props) {
     };
 
     return (
-        <div style={{ width: '100%', height: '100%' }}>
+        <div className="w-full h-full border-2 border-red-500">
             {renderChart()}
         </div>
     );
