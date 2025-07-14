@@ -65,7 +65,7 @@ function ChartComponent(props) {
     };
 
     return (
-        <div className="w-full h-full border-2 border-red-500">
+        <div className="w-full h-full">
             {renderChart()}
         </div>
     );

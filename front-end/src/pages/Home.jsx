@@ -49,7 +49,7 @@ function Home() {
   const [form] = Form.useForm();
   const [modifyForm] = Form.useForm();
   //用于存储后端传回的所有饼状图的数据
-  const [cashItems, setCashItems] = useState([]);
+  const [cashItems, setCashItems] = useState([{ itemName: '', balance: 0 }]);
   const amount = cashItems.reduce((acc, item) => acc + item.balance, 0);
   const [showLineChart, setShowLineChart] = useState(false);
   const [cashHistory, setCashHistory] = useState([]);
@@ -97,7 +97,11 @@ function Home() {
     plugins: {
       title: {
         display: true,
-        text: '我的现金流'
+        text: '我的现金流',
+        font: {
+          size: 20,
+          weight: 'bold'
+        }
       }
     },
     // 添加点击事件处理器
@@ -122,21 +126,28 @@ function Home() {
 
 
   const lineData = {
-    labels: cashHistory.map(item => item.date),
-    datasets: [{
-      label: 'My First Dataset',
-      data: cashHistory.map(item => item.balance),
-      fill: false,
-      borderColor: 'rgb(75, 192, 192)',
-      tension: 0.1
-    }]
+    labels: cashHistory.map(item => {
+      const date = new Date(item.date);
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    }),
+          datasets: [{
+        label: cashHistory.length > 0 ? cashHistory[0].itemName : '数据',
+        data: cashHistory.length > 0 ? cashHistory.map(item => parseFloat(item.balance.$numberDecimal)) : [100],
+        fill: false,
+        borderColor: 'rgb(75, 192, 192)',
+        tension: 0.1
+      }]
   };
 
   const lineOptions = {
     plugins: {
       title: {
         display: true,
-        text: '我的折线图'
+        text: cashHistory.length > 0 ? cashHistory[0].itemName + '历史变动' : '历史变化',
+        font: {
+          size: 20,
+          weight: 'bold'
+        }
       }
     }
   };
@@ -480,79 +491,82 @@ function Home() {
               title={<div className="flex items-center"><PieChartOutlined className="mr-2" />我的现金流</div>}
               className="shadow-md hover:shadow-lg transition-shadow  "
               bodyStyle={{ padding: 0 }}  // 去除 Card 的默认 padding
+              extra={
+                <div className="flex gap-2 ">
+                  <Button
+                    type="primary"
+                    onClick={() => {
+                      setModalOpen(true)
+                    }}
+                  >
+                    开始记账
+                  </Button>
+                  <Dropdown
+                    placement="bottomLeft"
+                    menu={modifyMenuProps}
+                    overlayStyle={{
+                      minWidth: '200px', // 设置最小宽度与按钮一致
+                      maxWidth: '200px'  // 设置最大宽度
+                    }}
+                  >
+                    <Button type="primary"
+                      style={{
+                        backgroundColor: '#1E90FF',
+                        borderColor: '#1E90FF',
+                        color: '#fff'                // 自定义文字色
+                      }} >
+                      修改数值 <DownOutlined />
+                    </Button>
+                  </Dropdown>
+                  <Dropdown
+                    placement="bottomLeft"
+                    menu={menuProps}
+
+                    overlayStyle={{
+                      minWidth: '200px', // 设置最小宽度与按钮一致
+                      maxWidth: '200px'  // 设置最大宽度
+                    }}
+                  >
+                    <Button type="primary" danger >
+                      删除项目 <DownOutlined />
+                    </Button>
+                  </Dropdown>
+                </div>
+              }
+
             >
               <div className="flex justify-center items-center h-[26rem]  ">
-                <div className="text-center rounded-lg px-6 w-full border-2 h-full ">
+                <div className="text-center rounded-lg px-6 w-full  h-full ">
 
                   {/* 使用 flex 布局让图表和统计数据并排 */}
                   {/* flex-direction: row (默认) */}
                   {/* 即默认flex是水平方向 */}
-                  <div className="flex items-center h-full">
+                  <div className="flex items-center  h-full">
                     {/* 左侧占领水平的1 */}
-                    <div className="w-1/3 ">
+                    <div className="w-1/5 ">
+                      <div >
+                        <div className="p-3 rounded-lg hover:bg-green-50 transition-colors duration-200">
+                          <Text type="secondary" className="block text-center text-sm">总现金</Text>
+                          <div className="text-lg font-bold text-green-500 text-center">{amount}</div>
+                        </div>
 
-                      <div className="p-3 rounded-lg hover:bg-green-50 transition-colors duration-200">
-                        <Text type="secondary" className="block text-center text-sm">总现金</Text>
-                        <div className="text-lg font-bold text-green-500 text-center">{amount}</div>
+                        <div className="p-3 rounded-lg hover:bg-red-50 transition-colors duration-200">
+                          <Text type="secondary" className="block text-center text-sm">总支出</Text>
+                          <div className="text-lg font-bold text-red-500 text-center">¥0</div>
+                        </div>
+
+                        <div className="p-3 rounded-lg hover:bg-blue-50 transition-colors duration-200">
+                          <Text type="secondary" className="block text-center text-sm">结余</Text>
+                          <div className="text-lg font-bold text-blue-500 text-center">¥0</div>
+                        </div>
                       </div>
-
-                      <div className="p-3 rounded-lg hover:bg-red-50 transition-colors duration-200">
-                        <Text type="secondary" className="block text-center text-sm">总支出</Text>
-                        <div className="text-lg font-bold text-red-500 text-center">¥0</div>
-                      </div>
-
-                      <div className="p-3 rounded-lg hover:bg-blue-50 transition-colors duration-200">
-                        <Text type="secondary" className="block text-center text-sm">结余</Text>
-                        <div className="text-lg font-bold text-blue-500 text-center">¥0</div>
-                      </div>
-
                     </div>
 
                     {/* 右侧占领水平的1 。因为左侧也占领水平的1，所以总水平是2，而右侧的flex-1 会占领水平的1/2 */}
-                    {/* 右侧占领水平的1 。因为左侧也占领水平的1，所以总水平是2，而右侧的flex-1 会占领水平的1/2 */}
-                    <div className="w-2/3 h-full">
+                    <div className="w-4/5 h-full">
 
                       <div className=" flex  h-full w-full">
-                        <div className="flex gap-2 mb-4">
-                          <Button
-                            type="primary"
-                            onClick={() => {
-                              setModalOpen(true)
-                            }}
-                          >
-                            开始记账
-                          </Button>
-                          <Dropdown
-                            placement="bottomLeft"
-                            menu={menuProps}
 
-                            overlayStyle={{
-                              minWidth: '200px', // 设置最小宽度与按钮一致
-                              maxWidth: '200px'  // 设置最大宽度
-                            }}
-                          >
-                            <Button type="primary" danger >
-                              删除项目 <DownOutlined />
-                            </Button>
-                          </Dropdown>
-                          <Dropdown
-                            placement="bottomLeft"
-                            menu={modifyMenuProps}
-                            overlayStyle={{
-                              minWidth: '200px', // 设置最小宽度与按钮一致
-                              maxWidth: '200px'  // 设置最大宽度
-                            }}
-                          >
-                            <Button type="primary"
-                              style={{
-                                backgroundColor: '#1E90FF',
-                                borderColor: '#1E90FF',
-                                color: '#fff'                // 自定义文字色
-                              }} >
-                              修改数值 <DownOutlined />
-                            </Button>
-                          </Dropdown>
-                        </div>
                         <div className="w-1/2 h-full">
                           <ChartComponent data={pieChart} /></div>
                         {showLineChart && <ChartComponent data={lineChart} />}
