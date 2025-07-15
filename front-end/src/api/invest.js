@@ -10,3 +10,12 @@ export const createCashItem = async (itemName, balance, price, amount, total, ty
         throw error; // 可以在组件中处理错误
     }
 };
+export const getInvestItem = async () => {
+    try {
+        const response = await apiClient.get("/invest");
+        return response;
+    } catch (error) {
+        console.error("Error getting invest item:", error);
+        throw error;
+    }
+};

@@ -5,6 +5,7 @@ const investItemSchema = new mongoose.Schema({
         required: true,
     },
     //Number类型天然支持小数
+    //每次交易都要更新
     balance: {
         type: Number,
         required: true,
@@ -14,31 +15,26 @@ const investItemSchema = new mongoose.Schema({
         required: true,
         ref: 'user'
     },
+    //创建时自带默认，可不写
     createDate: {
         type: Date,
         default: Date.now
     },
-    price: {
-        type: Number,
-        required: true,
-    },
-    amount: {
-        type: Number,
-        required: true,
-    },
-    total: {
-        type: Number,
-        required: true,
-    },
-    type: {
-        type: String,
-        required: true,
-        enum: ['sell', 'buy'],
-        default: 'buy'
-    },
-    investDate: {
+    //整个项目开始的日期，即第一笔交易的investDate
+    startDate: {
         type: Date,
         required: true,
+    },
+    //额外写个接口
+    active: {
+        type: Boolean,
+        default: true
+    },
+    //每次交易，都要更新
+    //创建时自带默认，可不写
+    updateDate: {
+        type: Date,
+        default: Date.now
     }
 
 })

@@ -71,7 +71,6 @@ function InvestModal(props) {
                 >
                     <InputNumber
                         placeholder="数量"
-                        prefix="￥"
                         style={{ width: '100%', height: '4vh' }}
                         precision={2}
                         min={0}

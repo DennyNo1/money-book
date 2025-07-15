@@ -1,6 +1,8 @@
 //简单计算放前端
 const User = require('../model/userModel');
 const InvestItem = require('../model/investItemModel');
+const InvestHistory = require('../model/investHistoryModel');
+const mongoose = require('mongoose'); // Added for mongoose.Types.ObjectId
 
 // 日期验证函数
 function isValidDate(dateString) {
@@ -14,17 +16,18 @@ function isValidDate(dateString) {
     // date.getTime() 如果日期无效会返回NaN
     return !isNaN(date.getTime()) && date.toString() !== 'Invalid Date';
 }
-//目前不做分页
+//创建投资项目
 const createInvestItem = async (req, res) => {
-    const { itemName, balance, price, amount, total, type, investDate } = req.body
+    //note可以为空
+    //itemId在创建时可以为空
+    const { itemName, balance, price, amount, total, type, investDate, note, itemId } = req.body
     const userId = req.user.userId
-
     // 检查任意字段为空
     // 基础字段存在性验证
     if (!itemName || !balance || !price || !amount || !total || !type || !investDate || !userId) {
         return res.status(400).json({
             error: 'Missing required fields',
-            message: 'itemName, balance, price, amount, total, type, investDate, and userId are required'
+            message: 'itemName, balance, price, amount, total, type, investDate, and userId  are required'
         });
     }
 
@@ -58,6 +61,7 @@ const createInvestItem = async (req, res) => {
     }
 
     // type字段验证
+
     if (!['sell', 'buy'].includes(type)) {
         return res.status(400).json({
             error: 'Invalid type',
@@ -82,32 +86,44 @@ const createInvestItem = async (req, res) => {
             });
         }
 
-        // 创建投资项目
-        const investItem = new InvestItem({
-            itemName: itemName.trim(),
-            balance: parseFloat(balance),
-            price: parseFloat(price),
-            amount: parseFloat(amount),
-            total: parseFloat(total),
-            type,
+        //无论创建还是交易，都需要创建investHistory
+        const investHistory = new InvestHistory({
+            itemName: itemName,
+            balance: balance,
+            price: price,
+            amount: amount,
+            total: total,
+            type: type,
             investDate: new Date(investDate),
-            createUser: userId
+            createUser: userId,
+            note: note || ''
         });
 
-        await investItem.save();
+
+        //根据itemId是否存在，判断是创建还是修改
+        if (itemId) {
+            //交易
+            investHistory.itemId = itemId;
+            await investHistory.save();
+            const item = await InvestItem.findById(itemId);
+            item.balance = balance;
+            item.updateDate = new Date();
+            await item.save();
+        } else {
+            //创建
+            const investItem = new InvestItem({
+                itemName: itemName.trim(),
+                balance: balance,
+                startDate: new Date(investDate),
+                createUser: userId
+            });
+            const savedItem = await investItem.save();
+            investHistory.itemId = savedItem._id;
+            await investHistory.save();
+        }
 
         return res.status(200).json({
             message: "Add new invest item successfully.",
-            investItem: {
-                id: investItem._id,
-                itemName: investItem.itemName,
-                balance: investItem.balance,
-                price: investItem.price,
-                amount: investItem.amount,
-                total: investItem.total,
-                type: investItem.type,
-                investDate: investItem.investDate
-            }
         });
 
     } catch (error) {
@@ -128,13 +144,20 @@ const createInvestItem = async (req, res) => {
     }
 }
 
-//目前不做分页，返回所有投资项目
+//获取用户的所有投资项目。目前不做分页。
 const getInvestItem = async (req, res) => {
     const userId = req.user.userId
-    const investItems = await InvestItem.find({ createUser: userId })
-        .select('itemName') // 只返回前端需要的字段
-        .lean() // 返回普通对象，提高性能
-    res.status(200).json(investItems)
+    try {
+        // 使用 distinct 获取不重复的项目名称
+        const uniqueItemNames = await InvestItem.distinct('itemName, _id, balance', { createUser: userId });
+        res.status(200).json(uniqueItemNames); // 过滤掉null值
+    } catch (error) {
+        console.error('Error getting invest items:', error);
+        res.status(500).json({
+            error: 'Server Error',
+            message: 'An internal server error occurred'
+        });
+    }
 }
 
 module.exports = { createInvestItem, getInvestItem };
