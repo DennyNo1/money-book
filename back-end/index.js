@@ -8,6 +8,7 @@ const codeRoutes = require("./routes/codeRoutes");
 const userRoutes = require("./routes/userRoutes");
 const calculateRoutes = require("./routes/calculateRoutes");
 const cashRoutes = require("./routes/cashRoutes");
+const investRoutes = require("./routes/investRoutes");
 const cors = require("cors"); // 引入 cors 中间件
 require("dotenv").config();
 
@@ -28,6 +29,7 @@ app.use(cors());
   app.use("/api", userRoutes);
   app.use("/api", calculateRoutes);
   app.use("/api", cashRoutes)
+  app.use("/api", investRoutes)
   //测试用
   app.get("/api", (req, res) => {
     res.send("Hello from the backend!");

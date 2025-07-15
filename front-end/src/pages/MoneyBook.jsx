@@ -3,6 +3,14 @@ import { addBook, getAllBooks, deleteBook } from "../api/book";
 import { useNavigate } from "react-router-dom";
 import { Outlet } from "react-router-dom";
 import BackHome from "../components/BackHome";
+import {
+  Form,
+  message,
+} from "antd";
+import InvestModal from "../components/InvestModal";
+import { createCashItem } from "../api/invest";
+import ChartComponent from "../components/ChartComponent";
+
 function MoneyBook() {
   const navigate = useNavigate(); //路由跳转
   const [showModal, setShowModal] = useState(false);
@@ -11,44 +19,40 @@ function MoneyBook() {
   const [input, setInput] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedBook, setSelectedBook] = useState(null);
-  const handleOpenModal = () => setShowModal(true);
-  const handleCloseModal = () => setShowModal(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false)
+  const [form] = Form.useForm();
+  const title = "Add New Invest Item";
+  const neeItemName = true;
+  const type = "buy";
+  const handleOk = async () => {
+    setLoading(true);
+    try {
+      const values = await form.validateFields();
+      const response = await createCashItem(values.itemName, -values.price * values.amount, values.price, values.amount, values.price * values.amount, type, values.investDate);
+      if (response.status === 200) {
+        message.success("Invest item created successfully");
+      } else {
+        message.error("Failed to create invest item");
+      }
+    } catch (error) {
+      console.error("Error creating invest item:", error);
+    }
+    finally {
+      setLoading(false);
+      setModalOpen(false);
+    }
+  }
+  const handleOpenModal = () => {
+    setModalOpen(true);
+  }
 
   const handleDelete = (book) => {
     console.log(book);
     setSelectedBook(book);
     setShowDeleteModal(true);
   };
-  //submit add new book
-  const handleSubmit = async (e) => {
-    e.preventDefault();
 
-    if (!input.trim()) {
-      console.error("Input is empty.");
-      alert("Please enter a book name.");
-      return;
-    }
-    try {
-      const response = await addBook({
-        name: input,
-        user_id: localStorage.getItem("user_id"),
-      });
-
-      if (response.status !== 200) {
-        alert(response.data.message);
-        handleCloseModal();
-        return;
-      }
-
-      console.log("Book added successfully!");
-      handleCloseModal();
-      fetchBooks();
-      setInput(""); // Clear the input after submission
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      alert("There was an error adding the book. Please try again.");
-    }
-  };
   const fetchBooks = async () => {
     try {
       const { data } = await getAllBooks(localStorage.getItem("user_id"));
@@ -59,19 +63,78 @@ function MoneyBook() {
     }
   };
 
-  const confirmDelete = async () => {
-    // 执行删除逻辑
 
-    setShowDeleteModal(false);
-    setSelectedBook(null);
-    // 在这里调用删除 API 或从状态中移除书本
-
-    await deleteBook(selectedBook._id);
-    fetchBooks();
-  };
   useEffect(() => {
     fetchBooks();
   }, []);
+
+  // const mixedChartData = {
+  //   labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+  //   datasets: [
+  //     {
+  //       type: 'bar',  // 柱状图数据集
+  //       label: '销售额',
+  //       data: [12, 19, 3, 5, 2, 3],
+  //       backgroundColor: 'rgba(54, 162, 235, 0.5)',
+  //       borderColor: 'rgba(54, 162, 235, 1)',
+  //       borderWidth: 1,
+  //       yAxisID: 'y'  // 使用左侧Y轴
+  //     },
+  //     {
+  //       type: 'line',  // 折线图数据集
+  //       label: '增长率',
+  //       data: [65, 59, 80, 81, 56, 55],
+  //       backgroundColor: 'rgba(255, 99, 132, 0.2)',
+  //       borderColor: 'rgba(255, 99, 132, 1)',
+  //       borderWidth: 2,
+  //       fill: false,
+  //       yAxisID: 'y1'  // 使用右侧Y轴
+  //     }
+  //   ]
+  // };
+
+  // const mixedChartOptions = {
+  //   responsive: true,
+  //   plugins: {
+  //     title: {
+  //       display: true,
+  //       text: '销售额与增长率对比'
+  //     },
+  //     legend: {
+  //       position: 'top'
+  //     }
+  //   },
+  //   scales: {
+  //     x: {
+  //       display: true,
+  //       title: {
+  //         display: true,
+  //         text: '月份'
+  //       }
+  //     },
+  //     y: {
+  //       type: 'linear',
+  //       display: true,
+  //       position: 'left',
+  //       title: {
+  //         display: true,
+  //         text: '销售额 (万元)'
+  //       }
+  //     },
+  //     y1: {
+  //       type: 'linear',
+  //       display: true,
+  //       position: 'right',
+  //       title: {
+  //         display: true,
+  //         text: '增长率 (%)'
+  //       },
+  //       grid: {
+  //         drawOnChartArea: false  // 避免网格线重叠
+  //       }
+  //     }
+  //   }
+  // };
 
   return (
     <div className="h-screen w-screen bg-gradient-to-r from-green-100 to-white flex items-center justify-center relative">
@@ -113,66 +176,27 @@ function MoneyBook() {
           onClick={handleOpenModal}
           className="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition duration-300"
         >
-          Add New Book
+          开始投资
         </button>
       </div>
 
-      {/* 添加书本的弹窗 */}
-      {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white w-1/3 p-6 rounded-lg shadow-lg relative">
-            <button
-              onClick={handleCloseModal}
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-            >
-              &times;
-            </button>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-gray-700">Book Name</label>
-                <input
-                  type="text"
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 mt-2"
-                  required
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                />
-              </div>
-              <button
-                type="submit"
-                className="w-full py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition duration-300"
-              >
-                Submit
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
+      <InvestModal
+        modalOpen={modalOpen}
+        setModalOpen={setModalOpen}
+        handleOk={handleOk}
+        loading={loading}
+        form={form}
+        title={title}
+        neeItemName={neeItemName}
+      />
 
-      {/* 删除确认弹窗 */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white w-1/3 p-6 rounded-lg shadow-lg">
-            <h3 className="text-gray-800 font-semibold mb-4">
-              Are you sure to delete '{selectedBook.name}'?
-            </h3>
-            <div className="flex justify-end gap-4">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-300"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDelete}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-300"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* <ChartComponent
+        data={{
+          chartType: 'mixed',
+          chartData: mixedChartData,
+          chartOptions: mixedChartOptions
+        }}
+      /> */}
       <BackHome></BackHome>
     </div>
   );

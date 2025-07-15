@@ -137,11 +137,14 @@ async function getAllCashItem(req, res) {
     const userId = req.user.userId
 
     try {
-        // 只查询未删除的项目
+        // 只查询未删除的项目，只返回前端需要的字段
         const cashItems = await CashItem.find({
             createUser: userId,
             isDeleted: false  // 过滤已软删除的项目
         })
+            .select('itemName balance createdAt updatedAt') // 只返回前端需要的字段
+            .lean() // 返回普通对象，提高性能
+
         res.status(200).json(cashItems)
     }
     catch (error) {
@@ -165,6 +168,9 @@ async function getCashHistory(req, res) {
     }
     try {
         const cashHistory = await CashHistory.find({ createUser: userId, itemName: itemName })
+            .select('itemName balance date createdAt') // 只返回前端需要的字段
+            .lean() // 返回普通对象，提高性能
+            .sort({ createdAt: 1 }) // 按时间排序
         res.status(200).json(cashHistory)
     }
     catch (error) {

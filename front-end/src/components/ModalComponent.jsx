@@ -2,7 +2,7 @@ import { Modal, Form, Input, InputNumber } from 'antd';
 
 {/* modal的高度也是自适应的 */ }
 function ModalComponent(props) {
-  const { modalOpen, setModalOpen, handleOk, loading, form, title, disabled, itemName, buttonStyle } = props
+  const { modalOpen, setModalOpen, handleOk, loading, form, title, disabled, buttonStyle } = props
   return (
 
     < Modal

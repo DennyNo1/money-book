@@ -58,6 +58,10 @@ function ChartComponent(props) {
                 return <Line data={data} options={options} />;
             case 'pie':
                 return <Pie data={data} options={options} />;
+            case 'mixed':
+            case 'combo':
+                // 混合图表使用Bar组件，但数据集中指定不同类型
+                return <Bar data={data} options={options} />;
             case 'bar':
             default:
                 return <Bar data={data} options={options} />;
