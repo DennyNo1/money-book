@@ -25,7 +25,7 @@ const investItemSchema = new mongoose.Schema({
         type: Date,
         required: true,
     },
-    //额外写个接口
+    //之后如果要修改，额外写个接口
     active: {
         type: Boolean,
         default: true
@@ -36,6 +36,7 @@ const investItemSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     }
+    //买入均价
 
 })
 module.exports = mongoose.model("InvestItem", investItemSchema, "investItem"); //如果不写最后的book，会默认是把Book转换为books的集合名

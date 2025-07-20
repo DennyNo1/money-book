@@ -7,25 +7,18 @@ import {
   Card,
   Row,
   Col,
-  Button,
   Typography,
   Tag,
-  Dropdown,
-  Popconfirm
 } from "antd";
 import {
-  StockOutlined,
+
   BarChartOutlined,
   CaretUpOutlined,
-  EyeOutlined,
-  PlusOutlined,
-  DeleteOutlined,
-  MoreOutlined,
-  QuestionCircleOutlined
+
 } from "@ant-design/icons";
 import InvestModal from "../components/InvestModal";
 import { createCashItem, getInvestItem } from "../api/invest";
-import ChartComponent from "../components/ChartComponent";
+
 
 const { Text, Title } = Typography;
 
@@ -40,25 +33,27 @@ function MoneyBook() {
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(false)
   const [form] = Form.useForm();
-  const title = "Add New Invest Item";
-  const neeItemName = true;
-  const type = "buy";
+  const [title, setTitle] = useState("Add New Invest Item");
+  const [neeItemName, setNeeItemName] = useState(true);
+  const [type, setType] = useState("buy");
   const handleOk = async () => {
     setLoading(true);
     try {
       const values = await form.validateFields();
-      const response = await createCashItem(values.itemName, -values.price * values.amount, values.price, values.amount, values.price * values.amount, type, values.investDate);
+      const response = await createCashItem(values.itemName, values.price * values.amount, values.price, values.amount, values.price * values.amount, type, values.investDate);
       if (response.status === 200) {
         message.success("Invest item created successfully");
+        fetchInvestItems();
       } else {
         message.error("Failed to create invest item");
       }
+      setModalOpen(false);
     } catch (error) {
       console.error("Error creating invest item:", error);
     }
     finally {
       setLoading(false);
-      setModalOpen(false);
+
     }
   }
   const handleOpenModal = () => {
@@ -71,7 +66,7 @@ function MoneyBook() {
     setShowDeleteModal(true);
   };
 
-  const fetchBooks = async () => {
+  const fetchInvestItems = async () => {
     try {
       const { data } = await getInvestItem();
       console.log(data);
@@ -83,89 +78,34 @@ function MoneyBook() {
 
 
   useEffect(() => {
-    fetchBooks();
+    fetchInvestItems();
   }, []);
 
-  // const mixedChartData = {
-  //   labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
-  //   datasets: [
-  //     {
-  //       type: 'bar',  // 柱状图数据集
-  //       label: '销售额',
-  //       data: [12, 19, 3, 5, 2, 3],
-  //       backgroundColor: 'rgba(54, 162, 235, 0.5)',
-  //       borderColor: 'rgba(54, 162, 235, 1)',
-  //       borderWidth: 1,
-  //       yAxisID: 'y'  // 使用左侧Y轴
-  //     },
-  //     {
-  //       type: 'line',  // 折线图数据集
-  //       label: '增长率',
-  //       data: [65, 59, 80, 81, 56, 55],
-  //       backgroundColor: 'rgba(255, 99, 132, 0.2)',
-  //       borderColor: 'rgba(255, 99, 132, 1)',
-  //       borderWidth: 2,
-  //       fill: false,
-  //       yAxisID: 'y1'  // 使用右侧Y轴
-  //     }
-  //   ]
-  // };
 
-  // const mixedChartOptions = {
-  //   responsive: true,
-  //   plugins: {
-  //     title: {
-  //       display: true,
-  //       text: '销售额与增长率对比'
-  //     },
-  //     legend: {
-  //       position: 'top'
-  //     }
-  //   },
-  //   scales: {
-  //     x: {
-  //       display: true,
-  //       title: {
-  //         display: true,
-  //         text: '月份'
-  //       }
-  //     },
-  //     y: {
-  //       type: 'linear',
-  //       display: true,
-  //       position: 'left',
-  //       title: {
-  //         display: true,
-  //         text: '销售额 (万元)'
-  //       }
-  //     },
-  //     y1: {
-  //       type: 'linear',
-  //       display: true,
-  //       position: 'right',
-  //       title: {
-  //         display: true,
-  //         text: '增长率 (%)'
-  //       },
-  //       grid: {
-  //         drawOnChartArea: false  // 避免网格线重叠
-  //       }
-  //     }
-  //   }
-  // };
 
   return (
     <div className="h-screen w-screen bg-gradient-to-r from-green-100 to-white flex items-center justify-center relative">
       {/* book区域 */}
       {/* 投资项目区域 - 一个一个展示 */}
-      <div className="px-6 bg-gradient-to-r from-green-100 to-white w-full">
-        <Row gutter={[0, 24]} justify="center">
+      <div className="px-6 bg-gradient-to-r from-green-100 to-white  w-2/3 h-2/3">
+        <Row gutter={[24, 24]} justify="left">
           {investItems.map((item, index) => (
-            <Col key={index} span={4}>
+            <Col key={index} span={6}>
               <Card
-                title={<div className="flex items-center"><StockOutlined className="mr-2" />投资管理</div>}
-                className="shadow-md hover:shadow-lg transition-shadow"
-                extra={<Button type="primary" onClick={() => navigate(`/moneybook/${item._id}`)}>进入</Button>}
+                // title={<div className="flex items-center"><StockOutlined className="mr-2" />投资管理</div>}
+                onClick={() => {
+                  navigate(`/moneybook/${item._id}`)
+                }}
+                className="                  shadow-md
+                  hover:shadow-2xl
+                  hover:scale-105
+   
+                  transition
+                  duration-300
+                  ease-in-out
+      
+                 hover:bg-gray-50"
+              // extra={<Button type="primary" onClick={() => navigate(`/moneybook/${item._id}`)}>进入</Button>}
               >
                 <div className="flex flex-col h-56 justify-between">
                   <div className="text-center p-4">

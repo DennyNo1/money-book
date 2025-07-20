@@ -3,7 +3,7 @@
 
 import { Modal, Form, Input, InputNumber, DatePicker } from 'antd';
 function InvestModal(props) {
-    const { modalOpen, setModalOpen, handleOk, loading, form, title, neeItemName } = props
+    const { modalOpen, setModalOpen, handleOk, loading, form, title, neeItemName, needNote } = props
     return (
         <Modal
             width="30%"
@@ -82,7 +82,7 @@ function InvestModal(props) {
                 {/* 日期 */}
                 <Form.Item
                     name="investDate"
-                    style={{ marginBottom: 36 }}
+                    style={{ marginBottom: needNote ? 24 : 36 }}
 
                     rules={[
                         { required: true, message: '请选择投资日期' }
@@ -94,6 +94,16 @@ function InvestModal(props) {
                         format="YYYY-MM-DD"
                     />
                 </Form.Item>
+                {/* 备注 */}
+                {
+                    needNote && <Form.Item
+                        name="note"
+                        style={{ marginBottom: 36 }}
+                    >
+                        <Input.TextArea placeholder="备注" rows={1} showCount maxLength={30} />
+                    </Form.Item>
+                }
+
             </Form>
 
 

@@ -88,7 +88,6 @@ const createInvestItem = async (req, res) => {
 
         //无论创建还是交易，都需要创建investHistory
         const investHistory = new InvestHistory({
-            itemName: itemName,
             balance: balance,
             price: price,
             amount: amount,
@@ -149,8 +148,8 @@ const getInvestItem = async (req, res) => {
     const userId = req.user.userId
     try {
         // 使用 distinct 获取不重复的项目名称
-        const uniqueItemNames = await InvestItem.distinct('itemName, _id, balance', { createUser: userId });
-        res.status(200).json(uniqueItemNames); // 过滤掉null值
+        const investItems = await InvestItem.find({ createUser: userId });
+        res.status(200).json(investItems); // 过滤掉null值
     } catch (error) {
         console.error('Error getting invest items:', error);
         res.status(500).json({
@@ -160,4 +159,119 @@ const getInvestItem = async (req, res) => {
     }
 }
 
-module.exports = { createInvestItem, getInvestItem };
+const makeInvest = async (req, res) => {
+    const { itemId, balance, price, amount, total, type, investDate, note } = req.body
+    // 检查任意字段为空
+    if (!itemId || !balance || !price || !amount || !total || !type || !investDate) {
+        return res.status(400).json({
+            error: 'Missing required fields',
+            message: 'itemId, balance, price, amount, total, type, investDate, and userId  are required'
+        });
+    }
+    // 检查balance, price, amount, total是否为数字
+    if (isNaN(parseFloat(balance)) || !isFinite(balance)) {
+        return res.status(400).json({
+            error: 'Invalid balance',
+            message: 'balance must be a valid number'
+        });
+    }
+    if (isNaN(parseFloat(price)) || !isFinite(price)) {
+        return res.status(400).json({
+            error: 'Invalid price',
+            message: 'price must be a valid number'
+        });
+    }
+    if (isNaN(parseFloat(amount)) || !isFinite(amount)) {
+        return res.status(400).json({
+            error: 'Invalid amount',
+            message: 'amount must be a valid number'
+        });
+    }
+    if (isNaN(parseFloat(total)) || !isFinite(total)) {
+        return res.status(400).json({
+            error: 'Invalid total',
+            message: 'total must be a valid number'
+        });
+    }
+    // 检查type是否为buy或sell
+    if (!['buy', 'sell'].includes(type)) {
+        return res.status(400).json({
+            error: 'Invalid type',
+            message: 'type must be either "buy" or "sell"'
+        });
+    }
+    // 检查investDate是否为有效日期 
+    if (!isValidDate(investDate)) {
+        return res.status(400).json({
+            error: 'Invalid investDate',
+            message: 'investDate must be a valid date'
+        });
+    }
+    try {
+        //根据itemId先查询item，并更新它
+        const item = await InvestItem.findById(itemId);
+        if (!item) {
+            return res.status(400).json({
+                error: 'Invalid itemId',
+                message: 'Item not found'
+            });
+        }
+        item.balance = balance;
+        item.updateDate = new Date();
+        await item.save();
+
+        const investHistory = new InvestHistory({
+            itemId: itemId,
+            balance: balance,
+            price: price,
+            amount: amount,
+            total: total,
+            type: type,
+            investDate: new Date(investDate),
+            note: note || ''
+        })
+        await investHistory.save();
+        return res.status(200).json({
+            message: "Make invest successfully.",
+        });
+    }
+    catch (error) {
+        console.error('Error making invest:', error);
+        res.status(500).json({
+            error: 'Server Error',
+            message: 'An internal server error occurred'
+        });
+    }
+}
+
+// 获取投资历史记录
+const getInvestmentHistory = async (req, res) => {
+    const { itemId } = req.params;
+    try {
+        const investItem = await InvestItem.findOne({
+            _id: itemId,
+        }).select('itemName balance startDate active updateDate');//select用于筛选字段
+        if (!investItem) {
+            return res.status(404).json({
+                error: 'Item not found',
+                message: 'Investment item not found'
+            });
+        }
+        const investHistory = await InvestHistory.find({
+            itemId: itemId,
+        }).select('balance price amount total type investDate note createDate')
+            .sort({ investDate: -1 });
+        res.status(200).json({
+            item: investItem,
+            history: investHistory
+        });
+    } catch (error) {
+        console.error('Error getting invest history:', error);
+        res.status(500).json({
+            error: 'Server Error',
+            message: 'An internal server error occurred'
+        });
+    }
+}
+
+module.exports = { createInvestItem, getInvestItem, getInvestmentHistory, makeInvest };

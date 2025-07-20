@@ -5,20 +5,22 @@ const investHistorySchema = new mongoose.Schema({
         required: true,
         ref: 'InvestItem'
     },
-    itemName: {
-        type: String,
-        required: true,
-    },
+    // 冗余
+    // itemName: {
+    //     type: String,
+    //     required: true,
+    // },
     //当时的盈余
     balance: {
         type: Number,
         required: true,
     },
-    createUser: {
-        type: mongoose.Schema.Types.ObjectId,
-        required: true,
-        ref: 'user'
-    },
+    // 冗余
+    // createUser: {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     required: true,
+    //     ref: 'user'
+    // },
     createDate: {
         type: Date,
         default: Date.now

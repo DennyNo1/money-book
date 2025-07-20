@@ -19,3 +19,24 @@ export const getInvestItem = async () => {
         throw error;
     }
 };
+
+export const makeInvest = async (itemId, balance, price, amount, total, type, investDate, note) => {
+    try {
+        const response = await apiClient.post("/invest/make", { itemId, balance, price, amount, total, type, investDate, note });
+        return response;
+    } catch (error) {
+        console.error("Error making invest:", error);
+        throw error;
+    }
+};
+
+export const getInvestmentHistory = async (itemId,) => {
+    try {
+        const response = await apiClient.get(`/invest/${itemId}`);
+        return response;
+    } catch (error) {
+        console.error("Error get one investment history:", error);
+        throw error;
+    }
+};
+
