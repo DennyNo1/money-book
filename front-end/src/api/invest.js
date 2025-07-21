@@ -1,5 +1,5 @@
 import apiClient from "./apiClient";
-export const createCashItem = async (itemName, balance, price, amount, total, type, investDate) => {
+export const createInvestItem = async (itemName, balance, price, amount, total, type, investDate) => {
 
     try {
         //axios 的 post 方法语法是：axios.post(url, payload, config)
@@ -36,6 +36,16 @@ export const getInvestmentHistory = async (itemId,) => {
         return response;
     } catch (error) {
         console.error("Error get one investment history:", error);
+        throw error;
+    }
+};
+
+export const deleteInvestItem = async (itemId) => {
+    try {
+        const response = await apiClient.delete(`/invest/${itemId}`);
+        return response;
+    } catch (error) {
+        console.error("Error deleting investment:", error);
         throw error;
     }
 };

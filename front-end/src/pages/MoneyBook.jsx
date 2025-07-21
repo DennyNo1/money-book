@@ -9,15 +9,22 @@ import {
   Col,
   Typography,
   Tag,
+  Button,
+  Dropdown,
+  Popconfirm
 } from "antd";
 import {
 
   BarChartOutlined,
   CaretUpOutlined,
+  DeleteOutlined,
+  DownOutlined,
+  QuestionCircleOutlined,
+  AccountBookOutlined
 
 } from "@ant-design/icons";
 import InvestModal from "../components/InvestModal";
-import { createCashItem, getInvestItem } from "../api/invest";
+import { createInvestItem, getInvestItem, deleteInvestItem } from "../api/invest";
 
 
 const { Text, Title } = Typography;
@@ -25,22 +32,47 @@ const { Text, Title } = Typography;
 function MoneyBook() {
   const navigate = useNavigate(); //路由跳转
   const [investItems, setInvestItems] = useState([]);
-  const [showModal, setShowModal] = useState(false);
-  const [error, setError] = useState([]);
-  const [input, setInput] = useState([]);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedBook, setSelectedBook] = useState(null);
+
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(false)
   const [form] = Form.useForm();
   const [title, setTitle] = useState("Add New Invest Item");
   const [neeItemName, setNeeItemName] = useState(true);
   const [type, setType] = useState("buy");
+  //这个是否需要封装成组件
+  const deleteItems = investItems.map((item, index) => ({
+    label: (
+      <Popconfirm
+        title="Delete the item"
+        description={`Are you sure to delete ${item.itemName}?`}
+        okText="Yes"
+        cancelText="No"
+        icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
+        okType="danger"
+        onConfirm={() => handleDelete(item._id)}
+      >
+        <div style={{
+          whiteSpace: 'normal',
+          wordWrap: 'break-word',
+          width: '100%', // 使用全宽
+          lineHeight: '1.2'
+        }}>
+          {item.itemName}
+        </div>
+      </Popconfirm>
+    ),
+    key: index.toString(),
+    icon: <AccountBookOutlined />,
+    danger: true,
+  }));
+  const menuProps = {
+    items: deleteItems,
+  };
   const handleOk = async () => {
     setLoading(true);
     try {
       const values = await form.validateFields();
-      const response = await createCashItem(values.itemName, values.price * values.amount, values.price, values.amount, values.price * values.amount, type, values.investDate);
+      const response = await createInvestItem(values.itemName, values.price * values.amount, values.price, values.amount, values.price * values.amount, type, values.investDate);
       if (response.status === 200) {
         message.success("Invest item created successfully");
         fetchInvestItems();
@@ -60,10 +92,16 @@ function MoneyBook() {
     setModalOpen(true);
   }
 
-  const handleDelete = (book) => {
-    console.log(book);
-    setSelectedBook(book);
-    setShowDeleteModal(true);
+  const handleDelete = async (itemId) => {
+    console.log(itemId)
+    const response = await deleteInvestItem(itemId);
+    if (response.status === 200) {
+      message.success(response.data.message);
+      fetchInvestItems()
+    }
+    else {
+      message.error(response.data.message);
+    }
   };
 
   const fetchInvestItems = async () => {
@@ -72,7 +110,7 @@ function MoneyBook() {
       console.log(data);
       setInvestItems(data);
     } catch (error) {
-      setError("Error fetching books");
+      message.error(error.message);
     }
   };
 
@@ -105,7 +143,8 @@ function MoneyBook() {
                   ease-in-out
       
                  hover:bg-gray-50"
-              // extra={<Button type="primary" onClick={() => navigate(`/moneybook/${item._id}`)}>进入</Button>}
+              // extra={<Button type="primary" danger >删除项目 <DeleteOutlined /></Button>}
+
               >
                 <div className="flex flex-col h-56 justify-between">
                   <div className="text-center p-4">
@@ -151,6 +190,19 @@ function MoneyBook() {
         >
           开始投资
         </button>
+        <Dropdown
+          placement="bottomLeft"
+          menu={menuProps}
+
+          overlayStyle={{
+            minWidth: '200px', // 设置最小宽度与按钮一致
+            maxWidth: '200px'  // 设置最大宽度
+          }}
+        >
+          <Button type="primary" danger  >
+            删除项目 <DownOutlined />
+          </Button>
+        </Dropdown>
       </div>
 
       <InvestModal

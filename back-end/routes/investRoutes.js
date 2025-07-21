@@ -1,4 +1,4 @@
-const { createInvestItem, getInvestItem, makeInvest, getInvestmentHistory } = require("../controller/investController");
+const { createInvestItem, getInvestItem, makeInvest, getInvestmentHistory, deleteInvestItem } = require("../controller/investController");
 const { verifyToken } = require("../middleware/authMiddleware");
 const express = require("express");
 const router = express.Router();
@@ -7,4 +7,5 @@ router.get("/invest", verifyToken, getInvestItem);
 router.post("/invest/make", verifyToken, makeInvest);
 // 如果只查询id，就用路径参数path parameter
 router.get("/invest/:itemId", verifyToken, getInvestmentHistory)
+router.delete("/invest/:itemId", verifyToken, deleteInvestItem);
 module.exports = router;

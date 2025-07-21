@@ -35,8 +35,12 @@ const investItemSchema = new mongoose.Schema({
     updateDate: {
         type: Date,
         default: Date.now
-    }
+    },
     //买入均价
-
+    // 软删除相关字段
+    isDeleted: {
+        type: Boolean,
+        default: false
+    },
 })
 module.exports = mongoose.model("InvestItem", investItemSchema, "investItem"); //如果不写最后的book，会默认是把Book转换为books的集合名

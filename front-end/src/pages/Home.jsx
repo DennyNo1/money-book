@@ -130,13 +130,13 @@ function Home() {
       const date = new Date(item.date);
       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
     }),
-          datasets: [{
-        label: cashHistory.length > 0 ? cashHistory[0].itemName : '数据',
-        data: cashHistory.length > 0 ? cashHistory.map(item => parseFloat(item.balance.$numberDecimal)) : [100],
-        fill: false,
-        borderColor: 'rgb(75, 192, 192)',
-        tension: 0.1
-      }]
+    datasets: [{
+      label: cashHistory.length > 0 ? cashHistory[0].itemName : '数据',
+      data: cashHistory.length > 0 ? cashHistory.map(item => parseFloat(item.balance.$numberDecimal)) : [100],
+      fill: false,
+      borderColor: 'rgb(75, 192, 192)',
+      tension: 0.1
+    }]
   };
 
   const lineOptions = {
@@ -341,7 +341,7 @@ function Home() {
       </Menu.Item>
     </Menu>
   );
-
+  // const 在这里保证的是 deleteItems这个变量在单次渲染的执行作用域内不会被重新赋值。它并不会阻止在下一次渲染时创建一个新的 deleteItems 变量。
   const deleteItems = cashItems.map((item, index) => ({
     label: (
       <Popconfirm

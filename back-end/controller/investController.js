@@ -148,7 +148,7 @@ const getInvestItem = async (req, res) => {
     const userId = req.user.userId
     try {
         // 使用 distinct 获取不重复的项目名称
-        const investItems = await InvestItem.find({ createUser: userId });
+        const investItems = await InvestItem.find({ createUser: userId, isDeleted: false });
         res.status(200).json(investItems); // 过滤掉null值
     } catch (error) {
         console.error('Error getting invest items:', error);
@@ -158,6 +158,21 @@ const getInvestItem = async (req, res) => {
         });
     }
 }
+const deleteInvestItem = async (req, res) => {
+    try {
+        const { itemId } = req.params;
+        await InvestItem.findByIdAndUpdate(itemId, { isDeleted: true });
+        res.status(200).json({ message: 'Invest item deleted successfully' });
+
+    } catch (error) {
+        console.error('Error deleting invest item:', error);
+        res.status(500).json({
+            error: 'Server Error',
+            message: 'An internal server error occurred'
+        });
+
+    }
+};
 
 const makeInvest = async (req, res) => {
     const { itemId, balance, price, amount, total, type, investDate, note } = req.body
@@ -274,4 +289,4 @@ const getInvestmentHistory = async (req, res) => {
     }
 }
 
-module.exports = { createInvestItem, getInvestItem, getInvestmentHistory, makeInvest };
+module.exports = { createInvestItem, getInvestItem, getInvestmentHistory, makeInvest, deleteInvestItem };

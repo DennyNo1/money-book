@@ -162,7 +162,7 @@ function InvestChart() {
             <div className="absolute top-10 right-6">
                 <button
                     onClick={() => { handleModal("buy") }}
-                    className="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition duration-300"
+                    className="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition duration-300 mr-4"
                 >
                     买入
                 </button>
@@ -173,14 +173,15 @@ function InvestChart() {
                     卖出
                 </button>
             </div>
-            <h1>Invest Chart</h1>
-            <ChartComponent
-                data={{
-                    chartType: 'mixed',
-                    chartData: mixedChartData,
-                    chartOptions: mixedChartOptions
-                }}
-            />
+            <div className="w-3/4 h-3/4">
+                <ChartComponent
+                    data={{
+                        chartType: 'mixed',
+                        chartData: mixedChartData,
+                        chartOptions: mixedChartOptions
+                    }}
+                />
+            </div>
             <InvestModal modalOpen={modalOpen} setModalOpen={setModalOpen} handleOk={handleOk} loading={loading} form={form} title={title} needNote={true} />
         </div>
     )

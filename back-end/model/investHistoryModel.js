@@ -52,6 +52,7 @@ const investHistorySchema = new mongoose.Schema({
     note: {
         type: String,
     },
+    //目前先不对单条投资记录做软删除
 
 })
 module.exports = mongoose.model('InvestHistory', investHistorySchema, 'investHistory');
