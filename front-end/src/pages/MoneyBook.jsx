@@ -72,7 +72,7 @@ function MoneyBook() {
     setLoading(true);
     try {
       const values = await form.validateFields();
-      const response = await createInvestItem(values.itemName, values.price * values.amount, values.price, values.amount, values.price * values.amount, type, values.investDate);
+      const response = await createInvestItem(values.itemName, -values.price * values.amount, values.price, values.amount, values.price * values.amount, type, values.investDate);
       if (response.status === 200) {
         message.success("Invest item created successfully");
         fetchInvestItems();
@@ -186,12 +186,12 @@ function MoneyBook() {
       <div className="absolute top-10 right-6">
         <button
           onClick={handleOpenModal}
-          className="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition duration-300"
+          className="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition duration-300 mr-4"
         >
           开始投资
         </button>
         <Dropdown
-          placement="bottomLeft"
+          placement="bottom"
           menu={menuProps}
 
           overlayStyle={{
@@ -199,9 +199,9 @@ function MoneyBook() {
             maxWidth: '200px'  // 设置最大宽度
           }}
         >
-          <Button type="primary" danger  >
+          <button type="primary" className="px-6 py-3 bg-red-500 text-white font-semibold rounded-lg shadow-md hover:bg-red-600 transition duration-300 mr-4">
             删除项目 <DownOutlined />
-          </Button>
+          </button>
         </Dropdown>
       </div>
 
@@ -222,7 +222,8 @@ function MoneyBook() {
           chartOptions: mixedChartOptions
         }}
       /> */}
-      <BackHome></BackHome>
+      <div className="absolute top-10 left-20">
+        <BackHome></BackHome></div>
     </div>
   );
 }

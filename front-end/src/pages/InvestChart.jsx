@@ -1,4 +1,5 @@
 import BackHome from "../components/BackHome";
+import BackLast from "../components/BackLast";
 import React, { useState, useEffect } from "react";
 import InvestModal from "../components/InvestModal";
 import {
@@ -158,7 +159,10 @@ function InvestChart() {
     return (
 
         <div className="h-screen w-screen bg-gradient-to-r from-green-100 to-white flex items-center justify-center relative">
-            <BackHome></BackHome>
+            <div className="absolute top-10 left-6 flex">
+                <BackHome></BackHome>
+                <BackLast path='/moneybook'></BackLast>
+            </div>
             <div className="absolute top-10 right-6">
                 <button
                     onClick={() => { handleModal("buy") }}
