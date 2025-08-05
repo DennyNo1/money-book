@@ -1,6 +1,11 @@
 const mongoose = require("mongoose");
+//这个schema是主，history schema是子元素
 const investItemSchema = new mongoose.Schema({
     itemName: {
+        type: String,
+        required: true,
+    },
+    description: {
         type: String,
         required: true,
     },

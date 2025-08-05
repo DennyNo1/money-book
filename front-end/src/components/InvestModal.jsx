@@ -38,6 +38,23 @@ function InvestModal(props) {
                             style={{ height: '4vh' }}
                         />
                     </Form.Item>)}
+                {/* 简介 */}
+                {neeItemName && (
+                    <Form.Item
+                        style={{ marginBottom: 24 }}
+                        // initialValue={itemName}
+                        name="description"
+                        rules={[
+                            { required: true, message: '请输入简介' },
+                            { min: 1, message: '简介不能为空' },
+                            { max: 50, message: '简介不能超过50个字符' }
+                        ]}
+                    >
+                        <Input
+                            placeholder="简介"
+                            style={{ height: '4vh' }}
+                        />
+                    </Form.Item>)}
                 {/* 单价 */}
                 <Form.Item
                     name="price"

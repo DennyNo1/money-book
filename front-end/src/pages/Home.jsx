@@ -27,7 +27,8 @@ import {
   KeyOutlined,
   DownOutlined,
   AccountBookOutlined,
-  QuestionCircleOutlined
+  QuestionCircleOutlined,
+  CloseOutlined
 } from "@ant-design/icons";
 import ChartComponent from "../components/ChartComponent";
 import ModalComponent from "../components/ModalComponent";
@@ -140,14 +141,26 @@ function Home() {
   };
 
   const lineOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    layout: {
+      padding: {
+        bottom: 30
+      }
+    },
     plugins: {
       title: {
         display: true,
         text: cashHistory.length > 0 ? cashHistory[0].itemName + '历史变动' : '历史变化',
         font: {
-          size: 20,
-          weight: 'bold'
+          size: 15,
+
+        },
+        padding: {
+          top: 30,
+          bottom: 10
         }
+
       }
     }
   };
@@ -395,12 +408,16 @@ function Home() {
       modifyForm.setFieldsValue({
         itemName: clickedItem.itemName,    // 使用当前点击的 item
         // 使用当前点击的 item
+        currentBalance: clickedItem.balance + "(现值)"
       });
     }
 
   }));
   const modifyMenuProps = {
     items: modifyItems,
+  };
+  const handleCloseLineChart = () => {
+    setShowLineChart(false);
   };
 
   return (
@@ -425,16 +442,16 @@ function Home() {
           {/* 记账管理区域 */}
           <Col xs={24} md={12}>
             <Card
-              title={<div className="flex items-center"><WalletOutlined className="mr-2" />记账管理</div>}
+              title={<div className="flex items-center"><WalletOutlined className="mr-2" />投资管理</div>}
               className="shadow-md hover:shadow-lg transition-shadow"
               extra={<Button type="primary" onClick={() => handleNavigate('/moneybook')}>进入</Button>}
             >
               <div className="flex flex-col h-56 justify-between">
                 <div className="text-center p-4">
                   <img src="/money.svg" alt="记账" className="w-20 h-20 mx-auto mb-4" />
-                  <Text className="block mb-2 text-lg">管理您的财务记录</Text>
+                  <Text className="block mb-2 text-lg">管理您的投资记录</Text>
                   <Text type="secondary" className="block">
-                    轻松记录日常收支，查看财务报表，合理规划预算
+                    智能跟踪投资收益，分析投资趋势，优化资产配置
                   </Text>
                 </div>
                 <Button
@@ -443,7 +460,7 @@ function Home() {
                   block
                   onClick={() => handleNavigate('/moneybook')}
                 >
-                  开始记账
+                  开始投资
                 </Button>
               </div>
             </Card>
@@ -568,8 +585,32 @@ function Home() {
                       <div className=" flex  h-full w-full">
 
                         <div className="w-1/2 h-full">
-                          <ChartComponent data={pieChart} /></div>
-                        {showLineChart && <ChartComponent data={lineChart} />}
+                          <ChartComponent data={pieChart} />
+                        </div>
+                        {showLineChart && (
+                          <div className="w-1/2 h-full relative">
+                            <Button
+                              type="text"
+                              icon={<CloseOutlined />}
+                              onClick={handleCloseLineChart}
+                              style={{
+                                position: 'absolute',
+                                top: '8px',
+                                right: '8px',
+                                zIndex: 10,
+                                backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                                border: 'none',
+                                borderRadius: '50%',
+                                width: '32px',
+                                height: '32px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}
+                            />
+                            <ChartComponent data={lineChart} />
+                          </div>
+                        )}
                       </div>
 
                     </div>
@@ -580,7 +621,12 @@ function Home() {
           </Col>
         </Row>
       </Content>
-      <ModalComponent modalOpen={modalOpen} setModalOpen={setModalOpen} handleOk={handleCreateCashItem} loading={loading} form={form} title="添加你的现金项目" />
+      <ModalComponent
+        modalOpen={modalOpen}
+        setModalOpen={setModalOpen}
+        handleOk={handleCreateCashItem}
+        loading={loading} form={form}
+        title="添加你的现金项目" />
       <ModalComponent
         modalOpen={modifyModalOpen}
         setModalOpen={setModifyModalOpen}
@@ -593,9 +639,6 @@ function Home() {
         buttonStyle={{ backgroundColor: '#1E90FF', borderColor: '#1E90FF', color: '#fff' }}
 
       />
-
-
-
 
     </Layout >
   );

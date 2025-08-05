@@ -66,6 +66,7 @@ function InvestChart() {
     }
     const fetchInvestmentHistory = async () => {
         const response = await getInvestmentHistory(book_id)
+
         setChartData(response.data)
         setCurrentBalance(response.data.item.balance)
 
@@ -96,24 +97,30 @@ function InvestChart() {
                 backgroundColor: 'rgba(54, 162, 235, 0.5)',
                 borderColor: 'rgba(54, 162, 235, 1)',
                 borderWidth: 1,
-                yAxisID: 'y'  // 使用左侧Y轴
+                yAxisID: 'y',  // 使用左侧Y轴
+                maxBarThickness: 50,  // 设置柱状图的最大宽度为50像素
+
             },
             {
                 type: 'line',  // 折线图数据集
-                label: '总盈余',
+                label: '当时盈余',
                 data: chartData.history && chartData.history.length > 0
                     ? chartData.history.map(item => item.balance) : [],
                 backgroundColor: 'rgba(255, 99, 132, 0.2)',
                 borderColor: 'rgba(255, 99, 132, 1)',
                 borderWidth: 2,
                 fill: false,
-                yAxisID: 'y1'  // 使用右侧Y轴
+                yAxisID: 'y1',  // 使用右侧Y轴
+                pointRadius: 10,        // 设置点的大小
+                pointHoverRadius: 15,   // 鼠标悬停时点的大小
+
             }
         ]
     };
 
     const mixedChartOptions = {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
             title: {
                 display: true,
@@ -129,7 +136,8 @@ function InvestChart() {
                 title: {
                     display: true,
                     text: '日期'
-                }
+                },
+
             },
             y: {
                 type: 'linear',
@@ -146,11 +154,12 @@ function InvestChart() {
                 position: 'right',
                 title: {
                     display: true,
-                    text: '总盈余'
+                    text: '当时盈余'
                 },
                 grid: {
                     drawOnChartArea: false  // 避免网格线重叠
-                }
+                },
+
             }
         }
     };

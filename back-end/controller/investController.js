@@ -20,11 +20,11 @@ function isValidDate(dateString) {
 const createInvestItem = async (req, res) => {
     //note可以为空
     //itemId在创建时可以为空
-    const { itemName, balance, price, amount, total, type, investDate, note, itemId } = req.body
+    const { itemName, description, balance, price, amount, total, type, investDate, note, itemId } = req.body
     const userId = req.user.userId
     // 检查任意字段为空
     // 基础字段存在性验证
-    if (!itemName || !balance || !price || !amount || !total || !type || !investDate || !userId) {
+    if (!itemName || !description || !balance || !price || !amount || !total || !type || !investDate || !userId) {
         return res.status(400).json({
             error: 'Missing required fields',
             message: 'itemName, balance, price, amount, total, type, investDate, and userId  are required'
@@ -114,7 +114,8 @@ const createInvestItem = async (req, res) => {
                 itemName: itemName.trim(),
                 balance: balance,
                 startDate: new Date(investDate),
-                createUser: userId
+                createUser: userId,
+                description: description.trim()
             });
             const savedItem = await investItem.save();
             investHistory.itemId = savedItem._id;
@@ -275,7 +276,7 @@ const getInvestmentHistory = async (req, res) => {
         const investHistory = await InvestHistory.find({
             itemId: itemId,
         }).select('balance price amount total type investDate note createDate')
-            .sort({ investDate: -1 });
+            .sort({ investDate: 1 });
         res.status(200).json({
             item: investItem,
             history: investHistory

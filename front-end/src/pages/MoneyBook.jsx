@@ -72,7 +72,7 @@ function MoneyBook() {
     setLoading(true);
     try {
       const values = await form.validateFields();
-      const response = await createInvestItem(values.itemName, -values.price * values.amount, values.price, values.amount, values.price * values.amount, type, values.investDate);
+      const response = await createInvestItem(values.itemName, values.description, -values.price * values.amount, values.price, values.amount, values.price * values.amount, type, values.investDate);
       if (response.status === 200) {
         message.success("Invest item created successfully");
         fetchInvestItems();
@@ -120,13 +120,27 @@ function MoneyBook() {
   }, []);
 
 
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
 
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      });
+    } catch (error) {
+      console.error('日期格式化错误:', error);
+      return dateString;
+    }
+  };
   return (
     <div className="h-screen w-screen bg-gradient-to-r from-green-100 to-white flex items-center justify-center relative">
       {/* book区域 */}
       {/* 投资项目区域 - 一个一个展示 */}
-      <div className="px-6 bg-gradient-to-r from-green-100 to-white  w-2/3 h-2/3">
-        <Row gutter={[24, 24]} justify="left">
+      <div className=" bg-gradient-to-r from-green-100 to-white  w-2/3 h-2/3  ">
+        <Row gutter={[24, 24]} justify="left" >
           {investItems.map((item, index) => (
             <Col key={index} span={6}>
               <Card
@@ -134,20 +148,19 @@ function MoneyBook() {
                 onClick={() => {
                   navigate(`/moneybook/${item._id}`)
                 }}
-                className="                  shadow-md
-                  hover:shadow-2xl
-                  hover:scale-105
-   
-                  transition
-                  duration-300
-                  ease-in-out
-      
+                className="                  
+                shadow-md
+                hover:shadow-2xl
+                hover:scale-105
+                transition
+                duration-300
+                ease-in-out
                  hover:bg-gray-50"
               // extra={<Button type="primary" danger >删除项目 <DeleteOutlined /></Button>}
 
               >
-                <div className="flex flex-col h-56 justify-between">
-                  <div className="text-center p-4">
+                <div className="flex flex-col h-full justify-between">
+                  <div className="text-center px-4">
                     <div className="w-20 h-20 mx-auto mb-4 relative">
                       <div className="w-full h-full bg-gradient-to-br from-green-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
                         <BarChartOutlined className="text-3xl text-white" />
@@ -158,16 +171,16 @@ function MoneyBook() {
                     </div>
                     <Text className="block mb-2 text-lg">{item.itemName}</Text>
                     <Text type="secondary" className="block">
-                      {item.itemName}
+                      {item.description}
                     </Text>
                     <div className="mt-3 flex justify-center gap-4">
                       <div className="text-center">
                         <Text type="secondary" className="block text-xs">创建时间</Text>
-                        <Text className="text-sm">{new Date(item.createdAt).toLocaleDateString()}</Text>
+                        <Text className="text-sm">{formatDate(item.createDate)}</Text>
                       </div>
                       <div className="text-center">
                         <Text type="secondary" className="block text-xs">状态</Text>
-                        <Tag color="success" className="text-xs">活跃</Tag>
+                        <Tag color="success" className="text-xs ml-2">活跃</Tag>
                       </div>
                     </div>
                   </div>

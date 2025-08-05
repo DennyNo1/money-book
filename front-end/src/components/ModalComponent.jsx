@@ -5,6 +5,7 @@ function ModalComponent(props) {
   const { modalOpen, setModalOpen, handleOk, loading, form, title, disabled, buttonStyle } = props
   return (
 
+    //用form这个数据来控制整个表单的值，而不是一个form.item单独绑定一个数据
     < Modal
       width="30%"
       title={title}
@@ -26,7 +27,6 @@ function ModalComponent(props) {
           style={{ marginBottom: 16, }}
           // initialValue={itemName}
           name="itemName"
-          // label="项目名称"
           rules={[
             { required: true, message: '请输入项目名称' },
             { min: 1, message: '项目名称不能为空' },
@@ -39,6 +39,21 @@ function ModalComponent(props) {
             disabled={disabled || false}
           />
         </Form.Item>
+        {disabled && <Form.Item
+          name="currentBalance"
+          style={{ marginBottom: 16 }}
+
+        >
+          <InputNumber
+            prefix="￥"
+            style={{ width: '100%', height: '4vh' }}
+
+            min={0}
+            controls={false}
+
+            disabled={true}
+          />
+        </Form.Item>}
 
         <Form.Item
           name="balance"
@@ -50,6 +65,7 @@ function ModalComponent(props) {
           ]}
         >
           <InputNumber
+            placeholder="请输入最新的值"
             prefix="￥"
             style={{ width: '100%', height: '4vh' }}
             precision={2}
@@ -59,6 +75,8 @@ function ModalComponent(props) {
             formatter={(value) => value ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : ''}
           />
         </Form.Item>
+
+
       </Form>
     </Modal >)
 }
