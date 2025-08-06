@@ -1,9 +1,9 @@
 import apiClient from "./apiClient";
-export const createInvestItem = async (itemName, description, balance, price, amount, total, type, investDate) => {
+export const createInvestItem = async (itemName, description, balance, price, amount, total, type, investDate, note) => {
 
     try {
         //axios 的 post 方法语法是：axios.post(url, payload, config)
-        const response = await apiClient.post("/invest", { itemName, description, balance, price, amount, total, type, investDate });
+        const response = await apiClient.post("/invest", { itemName, description, balance, price, amount, total, type, investDate, note });
         return response; // 返回新添加的书籍信息或状态
     } catch (error) {
         console.error("Error creating invest item:", error);
@@ -43,6 +43,16 @@ export const getInvestmentHistory = async (itemId,) => {
 export const deleteInvestItem = async (itemId) => {
     try {
         const response = await apiClient.delete(`/invest/${itemId}`);
+        return response;
+    } catch (error) {
+        console.error("Error deleting investment:", error);
+        throw error;
+    }
+};
+//?
+export const checkDuplicateInvestment = async (itemName) => {
+    try {
+        const response = await apiClient.get(`/invest/check-duplicate?itemName=${itemName}`);
         return response;
     } catch (error) {
         console.error("Error deleting investment:", error);

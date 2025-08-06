@@ -1,9 +1,10 @@
 //个人认为，重复性需要超过50%，再统一使用一个组件。
 //创建时需要itemName，而买入卖出不需要itemName
+//这个modal被开始投资，买入，卖出，三者共用
 
 import { Modal, Form, Input, InputNumber, DatePicker } from 'antd';
 function InvestModal(props) {
-    const { modalOpen, setModalOpen, handleOk, loading, form, title, neeItemName, needNote } = props
+    const { modalOpen, setModalOpen, handleOk, loading, form, title, startInvesting, needNote, checkName } = props
     return (
         <Modal
             width="30%"
@@ -22,15 +23,32 @@ function InvestModal(props) {
                 // 这是jsx的语法
                 style={{ marginTop: 36, }}
             >
-                {neeItemName && (
+                {startInvesting && (
                     <Form.Item
                         style={{ marginBottom: 24 }}
                         // initialValue={itemName}
+                        validateTrigger="onBlur" // 鼠标离开时验证
                         name="itemName"
                         rules={[
-                            { required: true, message: '请输入项目名称' },
-                            { min: 1, message: '项目名称不能为空' },
-                            { max: 50, message: '项目名称不能超过50个字符' }
+                            {
+                                validator: async (_, value) => {
+                                    const trimmedValue = value?.trim();
+                                    if (!trimmedValue) {
+                                        return Promise.reject(new Error('请输入项目名称'));
+                                    }
+                                    if (trimmedValue.length > 50) {
+                                        return Promise.reject(new Error('项目名称不能超过50个字符'));
+                                    }
+
+                                    // 模拟接口验证重复项（你之前注释掉的）
+                                    const isExist = await checkName(trimmedValue);
+                                    if (isExist) {
+                                        return Promise.reject(new Error('该项目已存在，建议使用其他名称'));
+                                    }
+
+                                    return Promise.resolve();
+                                },
+                            },
                         ]}
                     >
                         <Input
@@ -39,7 +57,7 @@ function InvestModal(props) {
                         />
                     </Form.Item>)}
                 {/* 简介 */}
-                {neeItemName && (
+                {startInvesting && (
                     <Form.Item
                         style={{ marginBottom: 24 }}
                         // initialValue={itemName}
@@ -51,7 +69,7 @@ function InvestModal(props) {
                         ]}
                     >
                         <Input
-                            placeholder="简介"
+                            placeholder="项目简介"
                             style={{ height: '4vh' }}
                         />
                     </Form.Item>)}
@@ -117,7 +135,7 @@ function InvestModal(props) {
                         name="note"
                         style={{ marginBottom: 36 }}
                     >
-                        <Input.TextArea placeholder="备注" rows={1} showCount maxLength={30} />
+                        <Input.TextArea placeholder="投资备注" rows={1} showCount maxLength={30} />
                     </Form.Item>
                 }
 

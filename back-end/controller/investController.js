@@ -24,6 +24,7 @@ const createInvestItem = async (req, res) => {
     const userId = req.user.userId
     // 检查任意字段为空
     // 基础字段存在性验证
+    //note可以为空
     if (!itemName || !description || !balance || !price || !amount || !total || !type || !investDate || !userId) {
         return res.status(400).json({
             error: 'Missing required fields',
@@ -290,4 +291,31 @@ const getInvestmentHistory = async (req, res) => {
     }
 }
 
-module.exports = { createInvestItem, getInvestItem, getInvestmentHistory, makeInvest, deleteInvestItem };
+//查询投资项目是否重名
+//t
+//是否能与已完结项目重名？不行
+const checkDuplicateInvestment = async (req, res) => {
+    const { itemName } = req.query;
+    try {
+        const investItem = await InvestItem.findOne({ itemName: itemName });
+        if (investItem) {
+            res.status(200).json({
+                message: '项目名已存在',
+                isExist: true
+            });
+        } else {
+            res.status(200).json({
+                message: '项目名可用',
+                isExist: false
+            });
+        }
+    } catch (error) {
+        console.error('Error query invest item name:', error);
+        res.status(500).json({
+            error: 'Server Error',
+            message: 'An internal server error occurred'
+        });
+    }
+}
+
+module.exports = { createInvestItem, getInvestItem, getInvestmentHistory, makeInvest, deleteInvestItem, checkDuplicateInvestment };

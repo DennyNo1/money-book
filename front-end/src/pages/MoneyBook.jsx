@@ -24,7 +24,7 @@ import {
 
 } from "@ant-design/icons";
 import InvestModal from "../components/InvestModal";
-import { createInvestItem, getInvestItem, deleteInvestItem } from "../api/invest";
+import { createInvestItem, getInvestItem, deleteInvestItem, checkDuplicateInvestment } from "../api/invest";
 
 
 const { Text, Title } = Typography;
@@ -32,12 +32,10 @@ const { Text, Title } = Typography;
 function MoneyBook() {
   const navigate = useNavigate(); //路由跳转
   const [investItems, setInvestItems] = useState([]);
-
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(false)
   const [form] = Form.useForm();
   const [title, setTitle] = useState("Add New Invest Item");
-  const [neeItemName, setNeeItemName] = useState(true);
   const [type, setType] = useState("buy");
   //这个是否需要封装成组件
   const deleteItems = investItems.map((item, index) => ({
@@ -72,7 +70,8 @@ function MoneyBook() {
     setLoading(true);
     try {
       const values = await form.validateFields();
-      const response = await createInvestItem(values.itemName, values.description, -values.price * values.amount, values.price, values.amount, values.price * values.amount, type, values.investDate);
+      const response = await createInvestItem(values.itemName,
+        values.description, -values.price * values.amount, values.price, values.amount, values.price * values.amount, type, values.investDate, values.note);
       if (response.status === 200) {
         message.success("Invest item created successfully");
         fetchInvestItems();
@@ -112,6 +111,18 @@ function MoneyBook() {
     } catch (error) {
       message.error(error.message);
     }
+  };
+
+  const checkName = async (itemName) => {
+    try {
+      const response = await checkDuplicateInvestment(itemName);
+      return response.data.isExist;
+    }
+    catch (error) {
+      message.error(error.message);
+    }
+
+
   };
 
 
@@ -225,7 +236,9 @@ function MoneyBook() {
         loading={loading}
         form={form}
         title={title}
-        neeItemName={neeItemName}
+        startInvesting={true}
+        needNote={true}
+        checkName={checkName}
       />
 
       {/* <ChartComponent
