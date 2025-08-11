@@ -22,7 +22,7 @@ export const getInvestItem = async () => {
 
 export const makeInvest = async (itemId, balance, price, amount, total, type, investDate, note) => {
     try {
-        const response = await apiClient.post("/invest/make", { itemId, balance, price, amount, total, type, investDate, note });
+        const response = await apiClient.post("/investing", { itemId, balance, price, amount, total, type, investDate, note });
         return response;
     } catch (error) {
         console.error("Error making invest:", error);
@@ -52,7 +52,7 @@ export const deleteInvestItem = async (itemId) => {
 //?
 export const checkDuplicateInvestment = async (itemName) => {
     try {
-        const response = await apiClient.get(`/invest/check-duplicate?itemName=${itemName}`);
+        const response = await apiClient.get(`/investment?itemName=${itemName}`);
         return response;
     } catch (error) {
         console.error("Error deleting investment:", error);
@@ -60,3 +60,16 @@ export const checkDuplicateInvestment = async (itemName) => {
     }
 };
 
+
+export const patchInvestment = async (itemId, epilogue) => {
+    //
+    try {
+        if (epilogue === undefined) epilogue = ''
+        const response = await apiClient.patch(`/invest/${itemId}`, { epilogue });
+        return response;
+    }
+    catch (error) {
+        console.error("Error patch investment:", error);
+        throw error;
+    }
+}

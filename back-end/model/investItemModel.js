@@ -33,7 +33,9 @@ const investItemSchema = new mongoose.Schema({
     //之后如果要修改，额外写个接口
     active: {
         type: Boolean,
-        default: true
+        default: true,
+        required: true,
+
     },
     //每次交易，都要更新
     //创建时自带默认，可不写
@@ -47,5 +49,24 @@ const investItemSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    // 完结之语
+    epilogue: {
+        type: String,
+        default: ''
+    },
+    endDate: {
+        type: Date,
+        default: null
+    },
+    deletedAt: {
+        type: Date,
+        default: null
+    },
+    deletedBy: {
+        type: String,
+        default: ''
+    }
+
+
 })
 module.exports = mongoose.model("InvestItem", investItemSchema, "investItem"); //如果不写最后的book，会默认是把Book转换为books的集合名

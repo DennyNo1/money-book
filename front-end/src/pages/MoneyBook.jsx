@@ -24,7 +24,7 @@ import {
 
 } from "@ant-design/icons";
 import InvestModal from "../components/InvestModal";
-import { createInvestItem, getInvestItem, deleteInvestItem, checkDuplicateInvestment } from "../api/invest";
+import { createInvestItem, getInvestItem, deleteInvestItem, checkDuplicateInvestment, patchInvestment } from "../api/invest";
 
 
 const { Text, Title } = Typography;
@@ -33,38 +33,107 @@ function MoneyBook() {
   const navigate = useNavigate(); //路由跳转
   const [investItems, setInvestItems] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
+  const [finishModalOpen, setFinishModalOpen] = useState(false);
   const [loading, setLoading] = useState(false)
   const [form] = Form.useForm();
   const [title, setTitle] = useState("Add New Invest Item");
+  const [finishTitle, setFinishTitle] = useState("Finish your Invest Item");
   const [type, setType] = useState("buy");
-  //这个是否需要封装成组件
-  const deleteItems = investItems.map((item, index) => ({
-    label: (
-      <Popconfirm
-        title="Delete the item"
-        description={`Are you sure to delete ${item.itemName}?`}
-        okText="Yes"
-        cancelText="No"
-        icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
-        okType="danger"
-        onConfirm={() => handleDelete(item._id)}
-      >
-        <div style={{
+  const [finishForm] = Form.useForm();
+  //这个是否需要封装成组件?可做可不做，重复率并不是很高
+  // //最后还是选择封装成组件了
+  const dropdownItems = (type, getLable, clickFuction, danger) => {
+    return investItems.map((item, index) => (
+      {
+        label: getLable(item),
+        key: index.toString(),
+        icon: <AccountBookOutlined />,
+        danger: danger,
+        //...代表展开另一个对象，加入到原对象
+        ...(type === 'finish' && { onClick: () => clickFuction(item) })
+      }));
+
+  }
+
+  const getDeleteLabel = (item) => (
+    <Popconfirm
+      title="Delete the item"
+      description={`Are you sure to delete ${item.itemName}?`}
+      okText="Yes"
+      cancelText="No"
+      icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
+      okType="danger"
+      onConfirm={() => handleDelete(item._id)}
+    >
+      <div
+        style={{
           whiteSpace: 'normal',
           wordWrap: 'break-word',
-          width: '100%', // 使用全宽
-          lineHeight: '1.2'
-        }}>
-          {item.itemName}
-        </div>
-      </Popconfirm>
-    ),
-    key: index.toString(),
-    icon: <AccountBookOutlined />,
-    danger: true,
-  }));
-  const menuProps = {
-    items: deleteItems,
+          width: '100%',
+          lineHeight: '1.2',
+        }}
+      >
+        {item.itemName}
+      </div>
+    </Popconfirm>
+  );
+
+  const getFinishLable = (item) => (
+    <div
+      style={{
+        whiteSpace: 'normal',
+        wordWrap: 'break-word',
+        width: '100%',
+        lineHeight: '1.2',
+      }}
+    >
+      {item.itemName}
+    </div>
+  );
+  const clickFinish = async (item) => {
+    await finishForm.setFieldsValue({
+      itemId: item._id,
+    });
+    setFinishModalOpen(true);
+  }
+  const handleFinish = async () => {
+    setLoading(true);
+
+    try {
+      const values = await finishForm.validateFields();
+      console.log(values.epilogue)
+      console.log(values.itemId)
+      const response = await patchInvestment(values.itemId, values.epilogue);
+      if (response.status === 200) {
+        message.success("Invest item finished successfully");
+        fetchInvestItems();
+      }
+      else {
+        message.error("Failed to finish invest item");
+      }
+      setFinishModalOpen(false);
+    } catch (error) {
+      console.error("Error creating invest item:", error);
+    }
+    finally {
+      setLoading(false);
+
+    }
+  }
+
+
+
+
+
+  const getMenuProps = (type) => {
+    switch (type) {
+      case 'delete':
+        return { items: dropdownItems("delete", getDeleteLabel, null, true) };
+      case 'finish':
+        return { items: dropdownItems("finish", getFinishLable, clickFinish, false) };
+      default:
+        return { items: [] };
+    }
   };
   const handleOk = async () => {
     setLoading(true);
@@ -87,9 +156,7 @@ function MoneyBook() {
 
     }
   }
-  const handleOpenModal = () => {
-    setModalOpen(true);
-  }
+
 
   const handleDelete = async (itemId) => {
     console.log(itemId)
@@ -209,15 +276,15 @@ function MoneyBook() {
       {/* 新增投资项目 */}
       <div className="absolute top-10 right-6">
         <button
-          onClick={handleOpenModal}
+          onClick={setModalOpen}
           className="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition duration-300 mr-4"
         >
           开始投资
         </button>
         <Dropdown
           placement="bottom"
-          menu={menuProps}
-
+          //控制不同下拉框
+          menu={getMenuProps("delete")}
           overlayStyle={{
             minWidth: '200px', // 设置最小宽度与按钮一致
             maxWidth: '200px'  // 设置最大宽度
@@ -225,6 +292,18 @@ function MoneyBook() {
         >
           <button type="primary" className="px-6 py-3 bg-red-500 text-white font-semibold rounded-lg shadow-md hover:bg-red-600 transition duration-300 mr-4">
             删除项目 <DownOutlined />
+          </button>
+        </Dropdown>
+        <Dropdown
+          placement="bottom"
+          menu={getMenuProps("finish")}
+          overlayStyle={{
+            minWidth: '200px', // 设置最小宽度与按钮一致
+            maxWidth: '200px'  // 设置最大宽度
+          }}
+        >
+          <button type="primary" className="px-6 py-3 bg-gray-400 text-white font-semibold rounded-lg shadow-md hover:bg-gray-500 transition duration-300 mr-4">
+            完结项目 <DownOutlined />
           </button>
         </Dropdown>
       </div>
@@ -239,6 +318,16 @@ function MoneyBook() {
         startInvesting={true}
         needNote={true}
         checkName={checkName}
+      />
+
+      <InvestModal
+        modalOpen={finishModalOpen}
+        setModalOpen={setFinishModalOpen}
+        handleOk={handleFinish}
+        loading={loading}
+        form={finishForm}
+        title={finishTitle}
+        finish={true}
       />
 
       {/* <ChartComponent

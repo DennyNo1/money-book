@@ -31,7 +31,7 @@ import {
   CloseOutlined
 } from "@ant-design/icons";
 import ChartComponent from "../components/ChartComponent";
-import ModalComponent from "../components/ModalComponent";
+import CashModal from "../components/CashModal";
 import { createCashItem, getAllCashItem, deleteCashItem, getCashHistory, modifyCashItem } from "../api/cash";
 
 
@@ -621,13 +621,13 @@ function Home() {
           </Col>
         </Row>
       </Content>
-      <ModalComponent
+      <CashModal
         modalOpen={modalOpen}
         setModalOpen={setModalOpen}
         handleOk={handleCreateCashItem}
         loading={loading} form={form}
         title="添加你的现金项目" />
-      <ModalComponent
+      <CashModal
         modalOpen={modifyModalOpen}
         setModalOpen={setModifyModalOpen}
         handleOk={handleModifyCashItem}

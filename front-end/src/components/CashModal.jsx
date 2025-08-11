@@ -61,7 +61,8 @@ function ModalComponent(props) {
           // label="金额"
           rules={[
             { required: true, message: '请输入金额' },
-            { type: 'number', min: 0.01, message: '金额必须大于0' }
+            // 逻辑上是可以等于0，甚至小于0
+            // // { type: 'number', min: 0.01, message: '金额必须大于0' }
           ]}
         >
           <InputNumber

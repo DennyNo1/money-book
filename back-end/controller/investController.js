@@ -318,4 +318,44 @@ const checkDuplicateInvestment = async (req, res) => {
     }
 }
 
-module.exports = { createInvestItem, getInvestItem, getInvestmentHistory, makeInvest, deleteInvestItem, checkDuplicateInvestment };
+const finishInvestment = async (req, res) => {
+    const { itemId } = req.params;
+    const { epilogue } = req.body;
+    try {
+
+        //对itemId进行验证,epilogue可以为空
+        if (!itemId) {
+            return res.status(400).json({
+                error: 'missing parameter',
+                message: 'itemId is required'
+            });
+        }
+        const investItem = await InvestItem.findOne({ _id: itemId });
+        if (!investItem) {
+            return res.status(404).json({
+                error: 'Invest item not found',
+                message: 'Invest item not found'
+            });
+        }
+        investItem.active = false;
+        if (epilogue)
+            investItem.epilogue = epilogue;
+        investItem.endDate = Date.now();
+        await investItem.save();
+        res.status(200).json({
+            message: 'finish item successfully',
+
+        });
+
+    }
+    catch (error) {
+        console.error('Error finish item:', error);
+        res.status(500).json({
+            error: 'Server Error',
+            message: 'An internal server error occurred'
+        });
+    }
+
+}
+
+module.exports = { createInvestItem, getInvestItem, getInvestmentHistory, makeInvest, deleteInvestItem, checkDuplicateInvestment, finishInvestment };

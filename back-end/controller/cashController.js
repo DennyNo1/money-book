@@ -81,7 +81,8 @@ async function modifyCashItem(req, res) {
     const userId = req.user.userId
     // 检查任意字段为空
     // 基础字段存在性验证
-    if (!balance || !userId || !_id) {
+    console.log(balance)
+    if (!typeof balance === 'number' || isNaN(balance) || !userId || !_id) {
         return res.status(400).json({
             error: 'Missing required fields',
             message: 'balance, userId, and _id are required'
