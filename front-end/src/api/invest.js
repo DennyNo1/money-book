@@ -10,9 +10,9 @@ export const createInvestItem = async (itemName, description, balance, price, am
         throw error; // 可以在组件中处理错误
     }
 };
-export const getInvestItem = async () => {
+export const getInvestItem = async (page, pageSize, active) => {
     try {
-        const response = await apiClient.get("/invest");
+        const response = await apiClient.get(`/investment-items?page=${page}&pageSize=${pageSize}&active=${active}`);
         return response;
     } catch (error) {
         console.error("Error getting invest item:", error);

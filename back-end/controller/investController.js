@@ -146,12 +146,35 @@ const createInvestItem = async (req, res) => {
 }
 
 //获取用户的所有投资项目。目前不做分页。
+//现在开始做分页了
 const getInvestItem = async (req, res) => {
     const userId = req.user.userId
     try {
         // 使用 distinct 获取不重复的项目名称
-        const investItems = await InvestItem.find({ createUser: userId, isDeleted: false });
-        res.status(200).json(investItems); // 过滤掉null值
+        const page = parseInt(req.query.page) || 1;       // 当前页，默认1
+        const pageSize = parseInt(req.query.pageSize) || 8;  // 每页数量，默认10
+        //req.query.active 是字符串（比如 "false" 或 "true"），不是布尔值或排序值。
+        const active = req.query.active || true;
+        console.log(active);
+        const activeSort = active === 'true' ? -1 : 1;
+
+        const filter = { createUser: userId, isDeleted: false };
+
+        // 1. 先查总数
+        const totalCount = await InvestItem.countDocuments(filter);
+
+        // 2. 查分页数据
+        const investItems = await InvestItem.find(filter)
+            .sort({ active: activeSort, createDate: -1 })
+            .skip((page - 1) * pageSize)
+            .limit(pageSize);
+        // 返回结果示例
+        res.json({
+            data: investItems,
+            total: totalCount,
+            page,
+            pageSize,
+        });
     } catch (error) {
         console.error('Error getting invest items:', error);
         res.status(500).json({
@@ -261,7 +284,7 @@ const makeInvest = async (req, res) => {
     }
 }
 
-// 获取投资历史记录
+// 获取投资过往记录
 const getInvestmentHistory = async (req, res) => {
     const { itemId } = req.params;
     try {

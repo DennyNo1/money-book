@@ -3,14 +3,13 @@ const { verifyToken } = require("../middleware/authMiddleware");
 const express = require("express");
 const router = express.Router();
 router.post("/invest", verifyToken, createInvestItem);
-router.get("/invest", verifyToken, getInvestItem);
+router.get("/investment-items", verifyToken, getInvestItem);
 router.post("/investing", verifyToken, makeInvest);
 router.get("/investment", verifyToken, checkDuplicateInvestment)
 // 如果只查询id，就用路径参数path parameter
 // ✅ Parameterized routes come AFTER specific routes
 router.get("/invest/:itemId", verifyToken, getInvestmentHistory)
 router.delete("/invest/:itemId", verifyToken, deleteInvestItem);
-
 router.patch("/invest/:itemId", verifyToken, finishInvestment);
 
 

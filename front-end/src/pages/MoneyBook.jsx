@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import BackHome from "../components/BackHome";
+import SwitchToFinished from "../components/SwitchToFinished";
 import {
   Form,
   message,
@@ -11,7 +12,9 @@ import {
   Tag,
   Button,
   Dropdown,
-  Popconfirm
+  Popconfirm,
+  Pagination,
+  Tooltip
 } from "antd";
 import {
 
@@ -25,6 +28,9 @@ import {
 } from "@ant-design/icons";
 import InvestModal from "../components/InvestModal";
 import { createInvestItem, getInvestItem, deleteInvestItem, checkDuplicateInvestment, patchInvestment } from "../api/invest";
+import { use } from "react";
+
+
 
 
 const { Text, Title } = Typography;
@@ -40,6 +46,11 @@ function MoneyBook() {
   const [finishTitle, setFinishTitle] = useState("Finish your Invest Item");
   const [type, setType] = useState("buy");
   const [finishForm] = Form.useForm();
+  const [totalItems, setTotalItems] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(8);
+  const [active, setActive] = useState(true);
+
   //这个是否需要封装成组件?可做可不做，重复率并不是很高
   // //最后还是选择封装成组件了
   const dropdownItems = (type, getLable, clickFuction, danger) => {
@@ -170,15 +181,22 @@ function MoneyBook() {
     }
   };
 
-  const fetchInvestItems = async () => {
+  const fetchInvestItems = async (type) => {
     try {
-      const { data } = await getInvestItem();
-      console.log(data);
-      setInvestItems(data);
+      let response;
+      if (type === 'inactive')
+        response = await getInvestItem(currentPage, pageSize, false);
+      else response = await getInvestItem(currentPage, pageSize, true);
+      const { data } = response;
+      // console.log(data);
+      setInvestItems(data.data);
+      setTotalItems(data.total);
+      setCurrentPage(1);
     } catch (error) {
       message.error(error.message);
     }
   };
+
 
   const checkName = async (itemName) => {
     try {
@@ -213,11 +231,17 @@ function MoneyBook() {
       return dateString;
     }
   };
+
+  const pageChange = (page, pageSize) => {
+    console.log(page, pageSize);
+  };
+
+
   return (
     <div className="h-screen w-screen bg-gradient-to-r from-green-100 to-white flex items-center justify-center relative">
       {/* book区域 */}
       {/* 投资项目区域 - 一个一个展示 */}
-      <div className=" bg-gradient-to-r from-green-100 to-white  w-2/3 h-2/3  ">
+      <div className=" bg-gradient-to-r from-green-100 to-white  w-2/3 h-2/3 flex flex-col ">
         <Row gutter={[24, 24]} justify="left" >
           {investItems.map((item, index) => (
             <Col key={index} span={6}>
@@ -233,11 +257,14 @@ function MoneyBook() {
                 transition
                 duration-300
                 ease-in-out
-                 hover:bg-gray-50"
+                hover:bg-gray-50
+                "
+                style={{ height: 280 }}
+
               // extra={<Button type="primary" danger >删除项目 <DeleteOutlined /></Button>}
 
               >
-                <div className="flex flex-col h-full justify-between">
+                <div className="flex flex-col h-full justify-between ">
                   <div className="text-center px-4">
                     <div className="w-20 h-20 mx-auto mb-4 relative">
                       <div className="w-full h-full bg-gradient-to-br from-green-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -248,17 +275,25 @@ function MoneyBook() {
                       </div>
                     </div>
                     <Text className="block mb-2 text-lg">{item.itemName}</Text>
+
                     <Text type="secondary" className="block">
                       {item.description}
                     </Text>
-                    <div className="mt-3 flex justify-center gap-4">
+                    <div className=" flex justify-center gap-4 mt-4 absolute bottom-4 left-4 right-4">
                       <div className="text-center">
                         <Text type="secondary" className="block text-xs">创建时间</Text>
                         <Text className="text-sm">{formatDate(item.createDate)}</Text>
                       </div>
                       <div className="text-center">
                         <Text type="secondary" className="block text-xs">状态</Text>
-                        <Tag color="success" className="text-xs ml-2">活跃</Tag>
+                        {
+                          item.active ? (
+                            <Tag color="success" className="text-xs ml-2">活跃</Tag>
+                          ) : (
+                            <Tag color="default" className="text-xs ml-2">完结</Tag>
+                          )
+                        }
+
                       </div>
                     </div>
                   </div>
@@ -269,8 +304,12 @@ function MoneyBook() {
 
           ))}
 
-
         </Row>
+
+        {/* 分页放在Row外面 */}
+        <div className="mt-10 flex justify-center py-4">
+          <Pagination defaultCurrent={currentPage} defaultPageSize={8} total={totalItems} pageSize={pageSize} showSizeChanger={false} />
+        </div>
       </div>
 
       {/* 新增投资项目 */}
@@ -337,9 +376,28 @@ function MoneyBook() {
           chartOptions: mixedChartOptions
         }}
       /> */}
-      <div className="absolute top-10 left-20">
-        <BackHome></BackHome></div>
-    </div>
+
+      <div className="absolute top-10 left-10 flex">
+        <BackHome></BackHome>
+
+        <SwitchToFinished onClick={
+          () => {
+            console.log("切换到历史")
+            if (active) {
+              fetchInvestItems("inactive")
+              setActive(false)
+            }
+            else {
+              fetchInvestItems("active")
+              setActive(true)
+            }
+          }
+
+        }
+          active={active}></SwitchToFinished>
+      </div>
+
+    </div >
   );
 }
 
