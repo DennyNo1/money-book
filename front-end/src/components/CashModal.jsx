@@ -1,10 +1,9 @@
 import { Modal, Form, Input, InputNumber } from 'antd';
 
 {/* modal的高度也是自适应的 */ }
-function ModalComponent(props) {
+function CashModal(props) {
   const { modalOpen, setModalOpen, handleOk, loading, form, title, disabled, buttonStyle } = props
   return (
-
     //用form这个数据来控制整个表单的值，而不是一个form.item单独绑定一个数据
     < Modal
       width="30%"
@@ -82,4 +81,4 @@ function ModalComponent(props) {
     </Modal >)
 }
 
-export default ModalComponent;
+export default CashModal;

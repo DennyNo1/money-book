@@ -18,8 +18,5 @@ export default function SwitchToFinished({ onClick, active }) {
                 </button>
             </Tooltip>
         </>
-
-
-
     );
 }

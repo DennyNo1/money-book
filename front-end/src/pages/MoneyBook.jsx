@@ -293,7 +293,6 @@ function MoneyBook() {
                             <Tag color="default" className="text-xs ml-2">完结</Tag>
                           )
                         }
-
                       </div>
                     </div>
                   </div>

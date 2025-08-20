@@ -32,6 +32,7 @@ import {
 } from "@ant-design/icons";
 import ChartComponent from "../components/ChartComponent";
 import CashModal from "../components/CashModal";
+import ExpenseModal from "../components/ExpenseModal";
 import { createCashItem, getAllCashItem, deleteCashItem, getCashHistory, modifyCashItem } from "../api/cash";
 
 
@@ -45,10 +46,13 @@ function Home() {
   const navigate = useNavigate();
   const [username, setUsername] = useState("用户");
   const [modalOpen, setModalOpen] = useState(false);
+  const [expenseModalOpen, setExpenseModalOpen] = useState(false);
   const [loading, setLoading] = useState(false)
   // 是 Ant Design 的表单 Hook，用于创建和管理表单实例。
   const [form] = Form.useForm();
+
   const [modifyForm] = Form.useForm();
+  const [expenseForm] = Form.useForm()
   //用于存储后端传回的所有饼状图的数据
   const [cashItems, setCashItems] = useState([{ itemName: '', balance: 0 }]);
   const amount = cashItems.reduce((acc, item) => acc + item.balance, 0);
@@ -151,7 +155,8 @@ function Home() {
     plugins: {
       title: {
         display: true,
-        text: cashHistory.length > 0 ? cashHistory[0].itemName + '历史变动' : '历史变化',
+        // text: cashHistory.length > 0 ? cashHistory[0].itemName + '历史变动' : '历史变化',
+        text: '每月支出',
         font: {
           size: 15,
 
@@ -400,7 +405,6 @@ function Home() {
     key: index.toString(),
     icon: <AccountBookOutlined />,
     onClick: (menuInfo) => {
-
       const clickedItem = cashItems[parseInt(menuInfo.key)];
       console.log(clickedItem)
       setSelectedItem(clickedItem)
@@ -513,11 +517,20 @@ function Home() {
                   <Button
                     type="primary"
                     onClick={() => {
+                      setExpenseModalOpen(true)
+                    }}
+                  >
+                    开始记月支出
+                  </Button>
+                  <Button
+                    type="primary"
+                    onClick={() => {
                       setModalOpen(true)
                     }}
                   >
-                    开始记账
+                    开始记现金流
                   </Button>
+
                   <Dropdown
                     placement="bottomLeft"
                     menu={modifyMenuProps}
@@ -532,7 +545,7 @@ function Home() {
                         borderColor: '#1E90FF',
                         color: '#fff'                // 自定义文字色
                       }} >
-                      修改数值 <DownOutlined />
+                      修改现金流 <DownOutlined />
                     </Button>
                   </Dropdown>
                   <Dropdown
@@ -545,7 +558,7 @@ function Home() {
                     }}
                   >
                     <Button type="primary" danger >
-                      删除项目 <DownOutlined />
+                      删除现金流 <DownOutlined />
                     </Button>
                   </Dropdown>
                 </div>
@@ -559,36 +572,18 @@ function Home() {
                   {/* flex-direction: row (默认) */}
                   {/* 即默认flex是水平方向 */}
                   <div className="flex items-center  h-full">
-                    {/* 左侧占领水平的1 */}
-                    <div className="w-1/5 ">
-                      <div >
-                        <div className="p-3 rounded-lg hover:bg-green-50 transition-colors duration-200">
-                          <Text type="secondary" className="block text-center text-sm">总现金</Text>
-                          <div className="text-lg font-bold text-green-500 text-center">{amount}</div>
-                        </div>
-
-                        <div className="p-3 rounded-lg hover:bg-red-50 transition-colors duration-200">
-                          <Text type="secondary" className="block text-center text-sm">总支出</Text>
-                          <div className="text-lg font-bold text-red-500 text-center">¥0</div>
-                        </div>
-
-                        <div className="p-3 rounded-lg hover:bg-blue-50 transition-colors duration-200">
-                          <Text type="secondary" className="block text-center text-sm">结余</Text>
-                          <div className="text-lg font-bold text-blue-500 text-center">¥0</div>
-                        </div>
-                      </div>
-                    </div>
-
                     {/* 右侧占领水平的1 。因为左侧也占领水平的1，所以总水平是2，而右侧的flex-1 会占领水平的1/2 */}
                     <div className="w-4/5 h-full">
 
                       <div className=" flex  h-full w-full">
-
+                        <div className="w-1/2 h-full">
+                          <ChartComponent data={lineChart} /></div>
                         <div className="w-1/2 h-full">
                           <ChartComponent data={pieChart} />
                         </div>
-                        {showLineChart && (
-                          <div className="w-1/2 h-full relative">
+                        {/* 我想把历史记录的详情，放到新的页面中，同一只在首页展示总览。 */}
+                        {/* {showLineChart && (
+                          <div className="w-1/3 h-full relative">
                             <Button
                               type="text"
                               icon={<CloseOutlined />}
@@ -610,9 +605,26 @@ function Home() {
                             />
                             <ChartComponent data={lineChart} />
                           </div>
-                        )}
+                        )} */}
                       </div>
 
+                    </div>
+                    {/* 左侧占领水平的1 */}
+                    <div className="w-1/6 ">
+                      <div className="p-3 rounded-lg hover:bg-green-50 transition-colors duration-200">
+                        <Text type="secondary" className="block text-center text-sm">总现金</Text>
+                        <div className="text-lg font-bold text-green-500 text-center">{amount}</div>
+                      </div>
+
+                      <div className="p-3 rounded-lg hover:bg-red-50 transition-colors duration-200">
+                        <Text type="secondary" className="block text-center text-sm">总支出</Text>
+                        <div className="text-lg font-bold text-red-500 text-center">¥0</div>
+                      </div>
+
+                      <div className="p-3 rounded-lg hover:bg-blue-50 transition-colors duration-200">
+                        <Text type="secondary" className="block text-center text-sm">结余</Text>
+                        <div className="text-lg font-bold text-blue-500 text-center">¥0</div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -637,8 +649,16 @@ function Home() {
         disabled={true}
         itemName={selectedItem.itemName}
         buttonStyle={{ backgroundColor: '#1E90FF', borderColor: '#1E90FF', color: '#fff' }}
-
       />
+      <ExpenseModal
+        modalOpen={expenseModalOpen}
+        setModalOpen={setExpenseModalOpen}
+        form={expenseForm}
+        title="添加你的月支出"
+      >
+
+
+      </ExpenseModal>
 
     </Layout >
   );
