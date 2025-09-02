@@ -34,6 +34,8 @@ import ChartComponent from "../components/ChartComponent";
 import CashModal from "../components/CashModal";
 import ExpenseModal from "../components/ExpenseModal";
 import { createCashItem, getAllCashItem, deleteCashItem, getCashHistory, modifyCashItem } from "../api/cash";
+import HomeFormErrorHandler from "../components/HomeFormErrorHandler";
+import { createExpenseRecordMonthly, listExpenseRecordMonthly } from "../api/expense";
 
 
 
@@ -58,6 +60,7 @@ function Home() {
   const amount = cashItems.reduce((acc, item) => acc + item.balance, 0);
   const [showLineChart, setShowLineChart] = useState(false);
   const [cashHistory, setCashHistory] = useState([]);
+  const [expenseRecordMonthly, setExpenseRecordMonthly] = useState([]);
   const [modifyModalOpen, setModifyModalOpen] = useState(false);
 
   const [selectedItem, setSelectedItem] = useState({ itemName: '', balance: 0 });
@@ -180,6 +183,7 @@ function Home() {
   // 判断登录，未登录则跳转
   useEffect(() => {
     fetchCashItems();
+    fetchExpenseRecordMonthly();
   }, []);
 
   //跳转页面
@@ -190,7 +194,11 @@ function Home() {
     const response = await getAllCashItem();
     setCashItems(response.data);
     //对后端传回的数据进行处理，把项目名放入删除的下拉框
+  }
 
+  const fetchExpenseRecordMonthly = async () => {
+    const response = await listExpenseRecordMonthly();
+    setExpenseRecordMonthly(response.data);
   }
 
 
@@ -218,7 +226,6 @@ function Home() {
       // 🔑 自动验证所有字段
       const values = await form.validateFields();
       console.log('验证通过的值:', values);
-
       setLoading(true);
       const response = await createCashItem(values.itemName, values.balance);
 
@@ -230,43 +237,9 @@ function Home() {
       }
     }
     catch (error) {
-      if (error.errorFields) {
-        // 验证失败，Ant Design 会自动显示错误
-        console.log('验证失败:', error);
-      } else {
-        // API 错误处理
-        console.error('Create cash item error:', error);
-
-        // 🔑 组合处理
-        const errorHandler = {
-          400: () => message.error('请检查输入信息'),
-          401: () => {
-            console.log(error)
-            message.error(error.response.data.message);
-            // setTimeout(() => navigate('/login'), 1500);
-          },
-          409: () => {
-            // message.error('项目名称已存在，请使用不同名称');
-            form.setFields([{
-              name: 'itemName',
-              errors: ['该项目已建立']
-            }]);
-          },
-          500: () => message.error('服务器错误，请稍后重试'),
-          network: () => message.error('网络连接失败，请检查网络'),
-          default: () => message.error('操作失败，请重试')
-        };
-
-        if (error.response) {
-          const handler = errorHandler[error.response.status] || errorHandler.default;
-          handler();
-        } else if (error.request) {
-          errorHandler.network();
-        } else {
-          errorHandler.default();
-        }
-      }
-    } finally {
+      HomeFormErrorHandler(error, form);
+    }
+    finally {
       setLoading(false);
       fetchCashItems();
     }
@@ -288,43 +261,9 @@ function Home() {
       }
     }
     catch (error) {
-      if (error.errorFields) {
-        // 验证失败，Ant Design 会自动显示错误
-        console.log('验证失败:', error);
-      } else {
-        // API 错误处理
-        console.error('Create cash item error:', error);
-
-        // 🔑 组合处理
-        const errorHandler = {
-          400: () => message.error('请检查输入信息'),
-          401: () => {
-            console.log(error)
-            message.error(error.response.data.message);
-            // setTimeout(() => navigate('/login'), 1500);
-          },
-          409: () => {
-            // message.error('项目名称已存在，请使用不同名称');
-            form.setFields([{
-              name: 'itemName',
-              errors: ['该项目已建立']
-            }]);
-          },
-          500: () => message.error('服务器错误，请稍后重试'),
-          network: () => message.error('网络连接失败，请检查网络'),
-          default: () => message.error('操作失败，请重试')
-        };
-
-        if (error.response) {
-          const handler = errorHandler[error.response.status] || errorHandler.default;
-          handler();
-        } else if (error.request) {
-          errorHandler.network();
-        } else {
-          errorHandler.default();
-        }
-      }
-    } finally {
+      HomeFormErrorHandler(error, form);
+    }
+    finally {
       setLoading(false);
       fetchCashItems();
     }
@@ -342,6 +281,27 @@ function Home() {
     }
     else {
       message.error(response.data.message);
+    }
+  }
+
+
+  const handleCreateExpense = async () => {
+    try {
+      const values = await expenseForm.validateFields();
+      console.log(values);
+      const response = await createExpenseRecordMonthly(values.date, values.sources, values.note);
+      if (response.status === 201) {
+        message.success(response.data.message);
+        expenseForm.resetFields();
+        setExpenseModalOpen(false);
+      }
+    }
+    catch (error) {
+      HomeFormErrorHandler(error, form);
+    }
+    finally {
+
+      setLoading(false);
     }
   }
 
@@ -655,6 +615,7 @@ function Home() {
         setModalOpen={setExpenseModalOpen}
         form={expenseForm}
         title="添加你的月支出"
+        handleOk={handleCreateExpense}
       >
 
 

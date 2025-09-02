@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
 const expenseSchema = new mongoose.Schema({
-    //日期
+    //日期,因为antdesign的类型时object，所以这里也设置为object
     date: {
-        type: Date,
+        type: Object,
         required: true
     },
     //支出总金额
