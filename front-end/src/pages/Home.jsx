@@ -36,6 +36,9 @@ import ExpenseModal from "../components/ExpenseModal";
 import { createCashItem, getAllCashItem, deleteCashItem, getCashHistory, modifyCashItem } from "../api/cash";
 import HomeFormErrorHandler from "../components/HomeFormErrorHandler";
 import { createExpenseRecordMonthly, listExpenseRecordMonthly } from "../api/expense";
+import { Chart, ArcElement, Tooltip, Legend } from 'chart.js';
+
+
 
 
 
@@ -57,10 +60,10 @@ function Home() {
   const [expenseForm] = Form.useForm()
   //用于存储后端传回的所有饼状图的数据
   const [cashItems, setCashItems] = useState([{ itemName: '', balance: 0 }]);
-  const amount = cashItems.reduce((acc, item) => acc + item.balance, 0);
+  const total = cashItems.reduce((acc, item) => acc + item.balance, 0);
   const [showLineChart, setShowLineChart] = useState(false);
   const [cashHistory, setCashHistory] = useState([]);
-  const [expenseRecordMonthly, setExpenseRecordMonthly] = useState([]);
+  const [expenseRecordMonthly, setExpenseRecordMonthly] = useState([{ total: 0 }]);
   const [modifyModalOpen, setModifyModalOpen] = useState(false);
 
   const [selectedItem, setSelectedItem] = useState({ itemName: '', balance: 0 });
@@ -82,7 +85,10 @@ function Home() {
 
   //用于生成饼状图的数据，即处理后后端传回的数据
   const pieData = {
-    labels: cashItems.map(item => item.itemName),
+    labels: cashItems.map(item => {
+      const percent = (item.balance / total * 100).toFixed(2);
+      return item.itemName + `(${percent}%)`
+    }),
     datasets: [
       {
         // label: '我的收入', // 第一个数据集
@@ -90,7 +96,6 @@ function Home() {
         backgroundColor: cashItems.map((item, index) => colorPool[index % colorPool.length]),
         hoverOffset: 4
       },
-
     ]
   };
 
@@ -110,8 +115,10 @@ function Home() {
           size: 20,
           weight: 'bold'
         }
-      }
+      },
+
     },
+
     // 添加点击事件处理器
     onClick: (event, elements) => {
       // 检查是否点击到了图表元素
@@ -121,7 +128,8 @@ function Home() {
         // 执行对应的功能
         handlePieChartClick(clickedItem, clickedElementIndex);
       }
-    }
+    },
+
   }
   const pieChart = {
     chartType: 'pie',
@@ -131,8 +139,7 @@ function Home() {
 
 
 
-
-
+  //属于现金流的折线图配置
   const lineData = {
     labels: cashHistory.map(item => {
       const date = new Date(item.date);
@@ -180,6 +187,87 @@ function Home() {
   };
 
 
+
+
+  //属于支出流的折线图配置
+  const expenseLineData = {
+    labels: expenseRecordMonthly.map(item => {
+      const date = new Date(item.date);
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    }),
+    datasets: [{
+      label: '该月总支出',
+      data: expenseRecordMonthly.length > 0 ? expenseRecordMonthly.map(item => parseFloat(item.total)) : [100],
+      fill: false,
+      borderColor: 'rgb(75, 192, 192)',
+      tension: 0.1
+    }]
+
+
+  }
+  const expenseLineOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    layout: {
+      padding: {
+        bottom: 30
+      }
+    },
+    plugins: {
+      title: {
+        display: true,
+        // text: cashHistory.length > 0 ? cashHistory[0].itemName + '历史变动' : '历史变化',
+        text: '每月支出',
+        font: {
+          size: 15,
+
+        },
+        padding: {
+          top: 30,
+          bottom: 10
+        }
+
+      },
+      //只有当鼠标悬停在图表的数据点上 时才会触发。
+      tooltip: {
+        callbacks: {
+          // 自定义 tooltip 标题
+          title: (tooltipItems) => {
+            const item = tooltipItems[0];
+            return ` ${item.label}`;
+          },
+          // 自定义每一行的文本
+          label: (tooltipItem) => {
+            const index = tooltipItem.datasetIndex
+            const value = tooltipItem.raw; // 原始 y 值
+            const sourceArray = expenseRecordMonthly[index].sources;
+            const sourceText = sourceArray.map((item, index) => {
+              return `${item.source}: ${item.amount}`
+            }).join('\n');
+
+
+            return [
+              `本月支出: ${value}`,
+
+              `来源: ${sourceText}`,
+
+              `备注: ${expenseRecordMonthly[index].note}`,
+
+            ];
+          },
+        },
+      },
+    }
+  }
+  const expenseLineChart = {
+    chartType: 'line',
+    chartData: expenseLineData,
+    chartOptions: expenseLineOptions,
+  };
+
+
+
+
   // 判断登录，未登录则跳转
   useEffect(() => {
     fetchCashItems();
@@ -198,7 +286,8 @@ function Home() {
 
   const fetchExpenseRecordMonthly = async () => {
     const response = await listExpenseRecordMonthly();
-    setExpenseRecordMonthly(response.data);
+    console.log(response.data.expenseRecord)
+    setExpenseRecordMonthly(response.data.expenseRecord);
   }
 
 
@@ -288,7 +377,7 @@ function Home() {
   const handleCreateExpense = async () => {
     try {
       const values = await expenseForm.validateFields();
-      console.log(values);
+      console.log(values.date);
       const response = await createExpenseRecordMonthly(values.date, values.sources, values.note);
       if (response.status === 201) {
         message.success(response.data.message);
@@ -302,6 +391,7 @@ function Home() {
     finally {
 
       setLoading(false);
+      fetchExpenseRecordMonthly();
     }
   }
 
@@ -537,11 +627,11 @@ function Home() {
 
                       <div className=" flex  h-full w-full">
                         <div className="w-1/2 h-full">
-                          <ChartComponent data={lineChart} /></div>
+                          <ChartComponent data={expenseLineChart} /></div>
                         <div className="w-1/2 h-full">
                           <ChartComponent data={pieChart} />
                         </div>
-                        {/* 我想把历史记录的详情，放到新的页面中，同一只在首页展示总览。 */}
+                        {/* 我想把历史记录的详情，放到新的页面中，可能未来在做一个现金流的详情页，同一只在首页展示总览。 */}
                         {/* {showLineChart && (
                           <div className="w-1/3 h-full relative">
                             <Button
@@ -573,12 +663,12 @@ function Home() {
                     <div className="w-1/6 ">
                       <div className="p-3 rounded-lg hover:bg-green-50 transition-colors duration-200">
                         <Text type="secondary" className="block text-center text-sm">总现金</Text>
-                        <div className="text-lg font-bold text-green-500 text-center">{amount}</div>
+                        <div className="text-lg font-bold text-green-500 text-center">{total}</div>
                       </div>
 
                       <div className="p-3 rounded-lg hover:bg-red-50 transition-colors duration-200">
-                        <Text type="secondary" className="block text-center text-sm">总支出</Text>
-                        <div className="text-lg font-bold text-red-500 text-center">¥0</div>
+                        <Text type="secondary" className="block text-center text-sm">上月支出</Text>
+                        <div className="text-lg font-bold text-red-500 text-center">{expenseRecordMonthly[expenseRecordMonthly.length - 1].total}</div>
                       </div>
 
                       <div className="p-3 rounded-lg hover:bg-blue-50 transition-colors duration-200">

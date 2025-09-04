@@ -1,5 +1,6 @@
 import { Modal, Form, Input, InputNumber, DatePicker, Button, Space } from 'antd';
 import { PlusOutlined, MinusCircleOutlined } from '@ant-design/icons';
+import dayjs from 'dayjs';
 function ExpenseModal(props) {
     const { modalOpen, setModalOpen, handleOk, loading, form, title, buttonStyle } = props
     return (
@@ -23,10 +24,10 @@ function ExpenseModal(props) {
                     style={{ marginBottom: 32, }}
                     name="date"
                 >
-                    <DatePicker picker="month" style={{ width: '100%', height: '4vh' }} />
+                    <DatePicker
+                        picker="month" style={{ width: '100%', height: '4vh' }}
+                        disabledDate={(current) => current && current > dayjs().endOf('month')} />
                 </Form.Item>
-
-
 
 
                 {/* 使用 Form.List 动态增加来源 */}
@@ -41,7 +42,6 @@ function ExpenseModal(props) {
                                     alignItems: 'baseline',
                                     width: '100%',
                                     height: '100%',
-
                                 }}>
                                     <Form.Item {...restField} name={[name, 'source']} rules={[{ required: true, message: '请输入来源' }]} style={{ width: '60%', }}>
                                         <Input placeholder="来源" />

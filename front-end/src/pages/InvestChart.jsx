@@ -90,7 +90,8 @@ function InvestChart() {
         datasets: [
             {
                 type: 'bar',  // 柱状图数据集
-                label: '单次投资数额',
+                // label: chartData.history.map(item => item.type),
+                label: '本次投资数额',
                 data: chartData.history && chartData.history.length > 0
                     ? chartData.history.map(item => item.type === 'buy' ? -item.total : item.total) : []
                 ,
@@ -128,6 +129,22 @@ function InvestChart() {
             },
             legend: {
                 position: 'top'
+            },
+            tooltip: {
+                callbacks: {
+                    label: function (context) {
+                        const datasetType = context.dataset.type;  // 获取当前 dataset 类型
+                        if (datasetType === 'bar') {
+                            // 仅覆盖柱状图
+                            const value = Math.abs(context.raw);
+                            const item = chartData.history[context.dataIndex];
+                            return `${item.type === 'buy' ? '买入' : '卖出'}: ${value}`;
+                        } else {
+                            // 其他类型保持默认
+                            return context.dataset.label + ': ' + context.formattedValue;
+                        }
+                    }
+                }
             }
         },
         scales: {

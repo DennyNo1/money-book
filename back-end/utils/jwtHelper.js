@@ -8,8 +8,9 @@ function generateToken(payload, type) {
     }
     let token;
 
+    // 15m过期时间太少了，所以改成1h
     if (type === 'accessToken') {
-      token = jwt.sign(payload, secretKey, { expiresIn: "15m" });
+      token = jwt.sign(payload, secretKey, { expiresIn: "1h" });
     } else if (type === 'refreshToken') {
       token = jwt.sign(payload, secretKey, { expiresIn: "30d" });
     } else {

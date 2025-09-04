@@ -5,22 +5,16 @@ const investHistorySchema = new mongoose.Schema({
         required: true,
         ref: 'InvestItem'
     },
-    // 冗余
-    // itemName: {
-    //     type: String,
-    //     required: true,
-    // },
+    //应该再加入一个交易后的平均价，
+    //以及每一笔根据交易前的均价计算的盈亏
+    //目前先不加入手续费
+
     //当时的盈余
     balance: {
         type: Number,
         required: true,
     },
-    // 冗余
-    // createUser: {
-    //     type: mongoose.Schema.Types.ObjectId,
-    //     required: true,
-    //     ref: 'user'
-    // },
+
     createDate: {
         type: Date,
         default: Date.now

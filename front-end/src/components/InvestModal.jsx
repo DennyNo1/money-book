@@ -134,11 +134,12 @@ function InvestModal(props) {
                     </Form.Item>
                     {/* 备注 */}
                     {
-                        needNote && <Form.Item
+                        needNote &&
+                        <Form.Item
                             name="note"
                             style={{ marginBottom: 36 }}
                         >
-                            <Input.TextArea placeholder="投资备注" rows={1} showCount maxLength={30} />
+                            <Input.TextArea placeholder="投资备注" rows={1} showCount autoSize={{ minRows: 1, maxRows: 6 }} />
                         </Form.Item>
                     }
 
@@ -155,7 +156,7 @@ function InvestModal(props) {
                         name="epilogue"
                         style={{ marginBottom: 36 }}
                     >
-                        <Input.TextArea placeholder="完结想说什么" rows={1} showCount maxLength={30} />
+                        <Input.TextArea placeholder="完结想说什么" autoSize={{ minRows: 1, maxRows: 6 }} />
                     </Form.Item>
                     <Form.Item name="itemId" hidden>
                         <Input type="hidden" />

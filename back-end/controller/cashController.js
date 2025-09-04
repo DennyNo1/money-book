@@ -116,7 +116,7 @@ async function modifyCashItem(req, res) {
         await cashHistory.save()
 
         return res.status(200).json({
-            message: 'Cash item modified successfully',
+            message: 'Cash flow update successfully',
             modifiedItem: {
                 id: cashItem._id,
                 itemName: cashItem.itemName,

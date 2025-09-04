@@ -11,7 +11,7 @@ const createExpenseRecordMonthly = async (req, res) => {
     //逻辑上每个出现的field都需要验证
     //非空验证
     if (!date || !total || !sources) {
-        console.log(date, total, sources)
+
         return res.status(400).json({
             error: 'Missing required fields',
             message: 'date, total, and source are required'
@@ -100,10 +100,10 @@ const createExpenseRecordMonthly = async (req, res) => {
 
 const listExpenseRecordMonthly = async (req, res) => {
     const userId = req.user.userId
-    console.log(userId)
+
     try {
         //id的数据类型是ObjectId，所以需要转换
-        const expenseRecord = await Expense.find({ createUser: new mongoose.Types.ObjectId(userId) }).sort({ date: -1 });
+        const expenseRecord = await Expense.find({ createUser: new mongoose.Types.ObjectId(userId) }).sort({ date: 1 });
         console.log(expenseRecord)
         return res.status(200).json({
             message: 'Expense record retrieved successfully',
