@@ -1,0 +1,18 @@
+{
+  "name": "money-book",
+  "version": "1.0.0",
+  "description": "money-book",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "concurrently \"npm run dev --prefix front-end\" \"npm run dev --prefix back-end\"",
+    "build": "npm run build --prefix front-end && npm run build --prefix back-end",
+    "start": "concurrently \"npm run start --prefix front-end\" \"npm run start --prefix back-end\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

@@ -1,5 +1,11 @@
 const mongoose = require("mongoose");
-require("dotenv").config();
+const dotenv = require('dotenv');
+// process.env.NODE_ENV用来告诉程序：你现在跑在什么环境里
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config({
+    path: '.env.development',
+  });
+}
 
 async function connectToDatabase() {
   let mongoUrl;
