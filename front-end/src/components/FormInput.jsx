@@ -1,5 +1,13 @@
-const FormInput = ({ name, type, placeholder, value, onChange, onBlur, error }) => (
-    <div>
+const FormInput = ({
+    name,
+    type,
+    placeholder,
+    value,
+    onChange,
+    onBlur,
+    error
+}) => (
+    <div className="form-item">
         <input
             type={type}
             placeholder={placeholder}
@@ -8,7 +16,9 @@ const FormInput = ({ name, type, placeholder, value, onChange, onBlur, error }) 
             onChange={onChange}
             onBlur={onBlur}
         />
-        <span className="error-message" data-field={name}>{error}</span>
+        <span className={`error-message ${error ? "show" : ""}`}>
+            {error || " "}
+        </span>
     </div>
 );
 export default FormInput;

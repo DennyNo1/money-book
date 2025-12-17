@@ -11,8 +11,6 @@ import FormInput from "../components/FormInput";
 
 function Register() {
   const navigate = useNavigate(); //hook函数，用于导航
-  console.log()
-
   const [validatePass, setValidatePass] = useState(true);
   //强制用邮箱登录
   const formFields = [
@@ -30,6 +28,16 @@ function Register() {
     password: "",
     confirmPassword: "",
   });
+
+  // 用于标记输入框是否被首次输入过。如果没有输入，我不希望有错误提示。
+  // 把四个标记放在一个对象里，方便管理。
+  const [touched, setTouched] = useState({
+    email: false,
+    nickname: false,
+    password: false,
+    confirmPassword: false,
+  });
+
   // 验证状态
   const [validationState, setValidationState] = useState({
     email: { isValid: false, error: "Email cannot be empty" },
@@ -119,6 +127,11 @@ function Register() {
   //对某个输入框失去焦点的单独处理
   async function handleBlur(event) {
     const { name, value } = event.target;
+    // 标记该输入框已被操作过
+    setTouched({
+      ...touched,
+      [name]: true,
+    });
 
     // 获取当前字段的验证规则
     const fieldValidators = validators[name] || [];
@@ -235,7 +248,9 @@ function Register() {
               {...field}
               onChange={handleChange}
               onBlur={handleBlur}
-              error={validationState[field.name].error}
+              error={touched[field.name]
+                ? validationState[field.name].error
+                : ""}
             />
           ))}
           <button type="submit">Create User</button>
@@ -272,15 +287,21 @@ const FormContainer = styled.div`
   }
 
   form {
+    min-width: 450px;  
+    min-height: 520px;
     background-color: #f0fff4; /* 浅绿色背景 */
     display: flex;
     flex-direction: column;
-    gap: 2rem;
-
+    gap: 1rem;
     border-radius: 2rem;
     padding: 3rem 5rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 增加阴影效果 */
   }
+  .form-item {
+  display: flex;
+  flex-direction: column;
+
+}
   input {
     background-color: #ffffff; /* 白色背景 */
     padding: 1rem;
@@ -294,6 +315,18 @@ const FormContainer = styled.div`
       outline: none;
     }
   }
+.error-message {
+  min-height: 1rem;
+  font-size: 0.875rem;
+
+
+  color: red;
+  visibility: hidden;
+}
+
+.error-message.show {
+  visibility: visible;
+}
   button {
     background-color: #38a169; /* 按钮绿色背景 */
     color: white;
@@ -327,15 +360,7 @@ const FormContainer = styled.div`
   100% { transform: scale(1); }
 }
 
-.error-message {
-  color: red;
-  display: inline-block; /* 确保变换效果正确应用 */
-  transition: all 0.3s ease;
-}
 
-.error-scale {
-  animation: scale 0.5s ease;
-}
 `;
 
 export default Register;
