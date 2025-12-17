@@ -86,7 +86,9 @@ function Home() {
   //用于生成饼状图的数据，即处理后后端传回的数据
   const pieData = {
     labels: cashItems.map(item => {
-      const percent = (item.balance / total * 100).toFixed(2);
+      const percent = total
+        ? ((item.balance / total) * 100).toFixed(2)
+        : '0.00';
       return item.itemName + `(${percent}%)`
     }),
     datasets: [
@@ -244,8 +246,6 @@ function Home() {
             const sourceText = sourceArray.map((item, index) => {
               return `${item.source}: ${item.amount}`
             }).join('\n');
-
-
             return [
               `本月支出: ${value}`,
 
@@ -668,7 +668,10 @@ function Home() {
 
                       <div className="p-3 rounded-lg hover:bg-red-50 transition-colors duration-200">
                         <Text type="secondary" className="block text-center text-sm">上月支出</Text>
-                        <div className="text-lg font-bold text-red-500 text-center">{expenseRecordMonthly[expenseRecordMonthly.length - 1].total}</div>
+
+                        <div className="text-lg font-bold text-red-500 text-center">
+                          {expenseRecordMonthly.at(-1)?.total ?? 0}          {/* 取数组最后一个元素；防止undifined*/}
+                        </div>
                       </div>
 
                       <div className="p-3 rounded-lg hover:bg-blue-50 transition-colors duration-200">

@@ -110,7 +110,7 @@ function Login() {
 
           <button type="submit">Login</button>
           <span>
-            still have no account? <Link to="/register">register</Link>
+            Still have no account? <Link to="/register">Register</Link>
           </span>
         </form>
       </FormContainer>
@@ -172,14 +172,14 @@ const FormContainer = styled.div`
     cursor: pointer;
     border-radius: 0.4rem;
     font-size: 1rem;
-    text-transform: uppercase;
+
     &:hover {
       background-color: #2f855a; /* 深绿色背景 */
     }
   }
   span {
     color: #2f855a; /* 深绿色文字 */
-    text-transform: uppercase;
+
     a {
       color: #38a169; /* 绿色链接 */
       text-decoration: none;
