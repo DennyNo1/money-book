@@ -11,13 +11,10 @@ import {
   Dropdown,
   Avatar,
   Typography,
-  Modal,
-  Input,
-  InputNumber,
-  Space,
   message,
   Form,
-  Popconfirm
+  Popconfirm,
+  Empty,
 } from "antd";
 import {
   UserOutlined,
@@ -28,7 +25,9 @@ import {
   DownOutlined,
   AccountBookOutlined,
   QuestionCircleOutlined,
-  CloseOutlined
+  CloseOutlined,
+  PayCircleOutlined,
+  TransactionOutlined
 } from "@ant-design/icons";
 import ChartComponent from "../components/ChartComponent";
 import CashModal from "../components/CashModal";
@@ -36,7 +35,7 @@ import ExpenseModal from "../components/ExpenseModal";
 import { createCashItem, getAllCashItem, deleteCashItem, getCashHistory, modifyCashItem } from "../api/cash";
 import HomeFormErrorHandler from "../components/HomeFormErrorHandler";
 import { createExpenseRecordMonthly, listExpenseRecordMonthly } from "../api/expense";
-import { Chart, ArcElement, Tooltip, Legend } from 'chart.js';
+
 
 
 
@@ -110,14 +109,14 @@ function Home() {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      title: {
-        display: true,
-        text: '我的现金流',
-        font: {
-          size: 20,
-          weight: 'bold'
-        }
-      },
+      // title: {
+      //   display: true,
+      //   text: '现金流图分析',
+      //   font: {
+      //     size: 20,
+      //     weight: 'bold'
+      //   }
+      // },
 
     },
 
@@ -474,6 +473,7 @@ function Home() {
     setShowLineChart(false);
   };
 
+
   return (
     <Layout className="h-screen ">
       {/* AppBar */}
@@ -489,7 +489,6 @@ function Home() {
           </div>
         </Dropdown>
       </Header>
-
       {/* 主内容区域 */}
       <Content className="px-6 bg-gradient-to-r from-green-100 to-white">
         <Row gutter={[24, 24]} >
@@ -498,7 +497,7 @@ function Home() {
             <Card
               title={<div className="flex items-center"><WalletOutlined className="mr-2" />投资管理</div>}
               className="shadow-md hover:shadow-lg transition-shadow"
-              extra={<Button type="primary" onClick={() => handleNavigate('/moneybook')}>进入</Button>}
+              extra={<Button type="primary" onClick={() => message.warning("Oops!该功能还在建设中.....")}>进入</Button>}
             >
               <div className="flex flex-col h-56 justify-between">
                 <div className="text-center p-4">
@@ -508,14 +507,14 @@ function Home() {
                     智能跟踪投资收益，分析投资趋势，优化资产配置
                   </Text>
                 </div>
-                <Button
+                {/* <Button
                   type="default"
                   icon={<WalletOutlined />}
                   block
                   onClick={() => handleNavigate('/moneybook')}
                 >
                   开始投资
-                </Button>
+                </Button> */}
               </div>
             </Card>
           </Col>
@@ -527,29 +526,29 @@ function Home() {
           xl = extra large（≥1200px，超大屏幕）
           xxl = extra extra large（≥1600px，超超大屏幕） 
           */}
-          {/* 密码管理区域 */}
+          {/* 支出管理区域 */}
           <Col xs={24} md={12}>
             <Card
-              title={<div className="flex items-center"><KeyOutlined className="mr-2" />密码管理</div>}
+              title={<div className="flex items-center"><TransactionOutlined className="mr-2" />支出管理</div>}
               className=" shadow-md hover:shadow-lg transition-shadow"
               extra={<Button type="primary" onClick={() => handleNavigate('/code')}>进入</Button>}
             >
               <div className="flex flex-col h-56 justify-between">
                 <div className="text-center p-4">
-                  <img src="/code.svg" alt="密码" className="w-20 h-20 mx-auto mb-4" />
-                  <Text className="block mb-2 text-lg">管理您的密码和代码</Text>
+                  <img src="/expense.svg" alt="支出" className="w-20 h-20 mx-auto mb-4" />
+                  <Text className="block mb-2 text-lg">管理您的消费支出</Text>
                   <Text type="secondary" className="block">
-                    安全存储重要密码，管理代码片段，便捷查询
+                    一眼看清，这个月钱花去哪了。
                   </Text>
                 </div>
-                <Button
+                {/* <Button
                   type="default"
                   icon={<KeyOutlined />}
                   block
                   onClick={() => handleNavigate('/code')}
                 >
                   管理密码
-                </Button>
+                </Button> */}
               </div>
             </Card>
           </Col>
@@ -564,21 +563,21 @@ function Home() {
               bodyStyle={{ padding: 0 }}  // 去除 Card 的默认 padding
               extra={
                 <div className="flex gap-2 ">
-                  <Button
+                  {/* <Button
                     type="primary"
                     onClick={() => {
                       setExpenseModalOpen(true)
                     }}
                   >
                     开始记月支出
-                  </Button>
+                  </Button> */}
                   <Button
                     type="primary"
                     onClick={() => {
                       setModalOpen(true)
                     }}
                   >
-                    开始记现金流
+                    添加现金流项目
                   </Button>
 
                   <Dropdown
@@ -595,7 +594,7 @@ function Home() {
                         borderColor: '#1E90FF',
                         color: '#fff'                // 自定义文字色
                       }} >
-                      修改现金流 <DownOutlined />
+                      修改现金流项目数值 <DownOutlined />
                     </Button>
                   </Dropdown>
                   <Dropdown
@@ -608,7 +607,7 @@ function Home() {
                     }}
                   >
                     <Button type="primary" danger >
-                      删除现金流 <DownOutlined />
+                      删除现金流项目 <DownOutlined />
                     </Button>
                   </Dropdown>
                 </div>
@@ -626,11 +625,27 @@ function Home() {
                     <div className="w-4/5 h-full">
 
                       <div className=" flex  h-full w-full">
-                        <div className="w-1/2 h-full">
-                          <ChartComponent data={expenseLineChart} /></div>
-                        <div className="w-1/2 h-full">
-                          <ChartComponent data={pieChart} />
-                        </div>
+                        {/* 支出部分作为一个独立的页面，所以删去 */}
+                        {/* <div className="w-1/2 h-full">
+                          <ChartComponent data={expenseLineChart} />
+                        </div> */}
+                        {
+                          cashItems.length == 0 ?
+                            <div className="w-full h-full  flex justify-center items-center">
+                              <Empty
+                                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                                description="还没有现金流记录,欢迎添加"
+                              >
+                              </Empty></div> :
+                            <div className="w-full h-full  flex justify-center items-centerl">
+                              <ChartComponent data={pieChart} />
+                            </div>
+                        }
+
+
+
+
+
                         {/* 我想把历史记录的详情，放到新的页面中，可能未来在做一个现金流的详情页，同一只在首页展示总览。 */}
                         {/* {showLineChart && (
                           <div className="w-1/3 h-full relative">
@@ -665,19 +680,16 @@ function Home() {
                         <Text type="secondary" className="block text-center text-sm">总现金</Text>
                         <div className="text-lg font-bold text-green-500 text-center">{total}</div>
                       </div>
-
                       <div className="p-3 rounded-lg hover:bg-red-50 transition-colors duration-200">
                         <Text type="secondary" className="block text-center text-sm">上月支出</Text>
-
                         <div className="text-lg font-bold text-red-500 text-center">
                           {expenseRecordMonthly.at(-1)?.total ?? 0}          {/* 取数组最后一个元素；防止undifined*/}
                         </div>
                       </div>
-
-                      <div className="p-3 rounded-lg hover:bg-blue-50 transition-colors duration-200">
+                      {/* <div className="p-3 rounded-lg hover:bg-blue-50 transition-colors duration-200">
                         <Text type="secondary" className="block text-center text-sm">结余</Text>
                         <div className="text-lg font-bold text-blue-500 text-center">¥0</div>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                 </div>
@@ -685,7 +697,7 @@ function Home() {
             </Card>
           </Col>
         </Row>
-      </Content>
+      </Content >
       <CashModal
         modalOpen={modalOpen}
         setModalOpen={setModalOpen}
@@ -710,8 +722,6 @@ function Home() {
         title="添加你的月支出"
         handleOk={handleCreateExpense}
       >
-
-
       </ExpenseModal>
 
     </Layout >
