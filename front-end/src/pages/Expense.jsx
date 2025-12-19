@@ -36,7 +36,7 @@ export default function Expense() {
             </Header>
 
             <Content className="px-6 bg-gradient-to-r from-green-100 to-white ">
-                <Row gutter={[0, 24]}>
+                <Row >
                     <Col span={6}>
                         <Card
                             title={<div >日期选择</div>}
@@ -85,21 +85,33 @@ export default function Expense() {
                         <Card
                             title={<div >支出分布</div>}
                         >
+                            {/* 这里的row和col是自适应高度，所以后续高度估计要固定，暂时让gap存在 */}
+                            <Empty
+                                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                                description="还没有支出记录,欢迎添加"
+                            >
+                            </Empty>
+
                         </Card>
                     </Col>
                 </Row>
 
-                <Row>
+                <Row >
                     <Col span={12}>
                         <Card
                             title={<div >支出趋势</div>}
                         >
+                            <Empty
+                                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                                description="还没有支出记录,欢迎添加"
+                            >
+                            </Empty>
                         </Card>
                     </Col>
                 </Row>
 
             </Content>
 
-        </Layout>
+        </Layout >
     )
 }

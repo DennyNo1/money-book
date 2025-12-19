@@ -23,20 +23,34 @@ app.use(cors());
   await connectToDatabase();
 
   // 使用路由
-  app.use("/api", bookRoutes);
-  app.use("/api", tableRoutes);
-  app.use("/api", apiRoutes);
-  app.use("/api", codeRoutes);
-  app.use("/api", userRoutes);
-  app.use("/api", calculateRoutes);
-  app.use("/api", cashRoutes)
-  app.use("/api", investRoutes)
-  app.use("/api", expenseRoutes)
+  const routes = [
+    bookRoutes,
+    tableRoutes,
+    apiRoutes,
+    codeRoutes,
+    userRoutes,
+    calculateRoutes,
+    cashRoutes,
+    investRoutes,
+    expenseRoutes
+  ];
+
+  routes.forEach(route => {
+    app.use("/api", route);
+  });
   //测试用
   app.get("/api", (req, res) => {
     res.send("Hello from the backend!");
   });
+  // 全局错误处理器（必须最后）
+  //真正系统错误（500）DB down 网络异常 未知异常
+  app.use((err, req, res, next) => {
+    console.error(err);
 
+    res.status(500).json({
+      message: 'Internal Server Error'
+    });
+  });
   // 启动服务器
   app.listen(process.env.PORT || 5000, () => {
     console.log("Server is running on port 5000");
