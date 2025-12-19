@@ -10,6 +10,7 @@ import Code from "./pages/Code.jsx";
 import Test from "./pages/Test.jsx";
 import { ConfigProvider } from "antd"
 import InvestChart from "./pages/InvestChart.jsx";
+import Expense from "./pages/Expense.jsx";
 //import "./App.css"; // 引入样式文件（如果有）
 
 //App.js 是作为根组件，其他组件通常会在其中被嵌套。
@@ -62,7 +63,7 @@ const App = () => {
             <Route path="/register" element={<Register />}></Route>
             <Route path="/code" element={<Code />}></Route>
             <Route path="/test" element={<Test />} />
-
+            <Route path="/expense" element={<Expense />} />
           </Routes>
         </BrowserRouter>
       </ConfigProvider>

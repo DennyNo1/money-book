@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import "../input.css";
 import { useNavigate } from "react-router-dom";
 import {
@@ -21,12 +21,11 @@ import {
   LogoutOutlined,
   PieChartOutlined,
   WalletOutlined,
-  KeyOutlined,
+
   DownOutlined,
   AccountBookOutlined,
   QuestionCircleOutlined,
-  CloseOutlined,
-  PayCircleOutlined,
+
   TransactionOutlined
 } from "@ant-design/icons";
 import ChartComponent from "../components/ChartComponent";
@@ -480,7 +479,7 @@ function Home() {
       <Header className="h-1/8 bg-gradient-to-r from-green-100 to-white shadow-md px-6 flex justify-between items-center">
         <div className="flex items-center">
           <img src="/logo.svg" alt="Logo" className="h-8 mr-4" />
-          <Title level={4} style={{ margin: 0 }}>财务管理系统</Title>
+          <Title level={4} style={{ margin: 0 }}>小钱书系统</Title>
         </div>
         <Dropdown overlay={userMenu} placement="bottomRight">
           <div className="flex items-center cursor-pointer">
@@ -531,7 +530,7 @@ function Home() {
             <Card
               title={<div className="flex items-center"><TransactionOutlined className="mr-2" />支出管理</div>}
               className=" shadow-md hover:shadow-lg transition-shadow"
-              extra={<Button type="primary" onClick={() => handleNavigate('/code')}>进入</Button>}
+              extra={<Button type="primary" onClick={() => handleNavigate('/expense')}>进入</Button>}
             >
               <div className="flex flex-col h-56 justify-between">
                 <div className="text-center p-4">
@@ -572,7 +571,12 @@ function Home() {
                     开始记月支出
                   </Button> */}
                   <Button
-                    type="primary"
+                    color="default"
+                    variant="filled"
+                    style={{
+                      color: '#15803d',
+                      backgroundColor: '#dcfce7',               // 自定义文字色
+                    }}
                     onClick={() => {
                       setModalOpen(true)
                     }}
@@ -588,11 +592,9 @@ function Home() {
                       maxWidth: '200px'  // 设置最大宽度
                     }}
                   >
-                    <Button type="primary"
+                    <Button color="primary" variant="filled"
                       style={{
-                        backgroundColor: '#1E90FF',
-                        borderColor: '#1E90FF',
-                        color: '#fff'                // 自定义文字色
+                        color: '#1E90FF'               // 自定义文字色
                       }} >
                       修改现金流项目数值 <DownOutlined />
                     </Button>
@@ -606,7 +608,7 @@ function Home() {
                       maxWidth: '200px'  // 设置最大宽度
                     }}
                   >
-                    <Button type="primary" danger >
+                    <Button color="danger" variant="filled" >
                       删除现金流项目 <DownOutlined />
                     </Button>
                   </Dropdown>
