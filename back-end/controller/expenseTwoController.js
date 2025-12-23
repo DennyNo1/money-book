@@ -21,21 +21,25 @@ const importExpenseTwoRecords = async (req, res) => {
         });
     }
     //允许插入失败。此变量用于记录插入成功数。
-    const successCount = 0;
-    const failedCount = 0;
+    let successCount = 0;
+    let failedCount = 0;
     const errors = [];
     for (const record of records) {
-        const { expenseDate, amount, category, payObject } = record;
-        if (!expenseDate || !amount || !category || !payObject) {
+        const { expenseDate, amount, category, payObject, payMethod
+        } = record;
+        if (!expenseDate || !amount || !category || !payObject || !payMethod) {
             return res.status(400).json({
                 error: 'Missing required fields in one of the records',
-                message: 'expenseDate, amount, sources, category, and payObject are required'
+                message: 'expenseDate, amount, category, payObject,payMethod are required'
             });
         }
-        if (typeof amount !== 'number' || amount <= 0) {
+
+        const parsedAmount = Number(amount);
+
+        if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
             return res.status(400).json({
                 error: 'Invalid amount in one of the records',
-                message: 'amount must be a positive number'
+                message: 'amount must be a positive number',
             });
         }
         if (typeof payObject !== 'string' || payObject.trim() === '') {
@@ -50,13 +54,19 @@ const importExpenseTwoRecords = async (req, res) => {
                 message: 'category must be a non-empty string'
             });
         }
+        if (typeof payMethod !== 'string' || payMethod.trim() === '') {
+            return res.status(400).json({
+                error: 'Invalid payMethod in one of the records',
+                message: 'payMethod must be a non-empty string'
+            });
+        }
         if (!isValidDate(expenseDate)) {
             return res.status(400).json({
                 error: 'Invalid expenseDate in one of the records',
                 message: 'expenseDate must be a valid date'
             });
         }
-        record.userId = mongoose.Types.ObjectId(userId);
+        record.userId = new mongoose.Types.ObjectId(userId);
 
         //插入数据库
         try {
@@ -68,6 +78,7 @@ const importExpenseTwoRecords = async (req, res) => {
                 // 直接抛出，停止批量插入
                 throw error;
             }
+            // 重复的记录产生的错误有必要单独捕获？目前没必要
             console.error('Error inserting record:', error);
             errors.push({ record, error: error.message });
             failedCount++;
@@ -86,12 +97,12 @@ const importExpenseTwoRecords = async (req, res) => {
 //第二，为前端获取指定月份的记录，创建api
 const getExpenseTwoByMonth = async (req, res) => {
     const userId = req.user.userId;
-    const { year, month } = req.params;
+    const { year: yearStr, month: monthStr } = req.params;
     //验证year和month
     //对于这种可数字可字符串的变量，前端传过来还是字符串比较好
     //交给dateValidator.js中的validateYearMonth函数处理
     try {
-        const { year, month } = validateYearMonth(year, month);
+        const { year, month } = validateYearMonth(yearStr, monthStr);
         //把年和月重新组成一个Date范围再去查询
         const start = new Date(year, month - 1, 1);
         const end = new Date(year, month, 1);
@@ -128,3 +139,7 @@ const getExpenseTwoByMonth = async (req, res) => {
 
 }
 
+module.exports = {
+    importExpenseTwoRecords,
+    getExpenseTwoByMonth
+};

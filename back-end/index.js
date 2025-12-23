@@ -10,6 +10,7 @@ const calculateRoutes = require("./routes/calculateRoutes");
 const cashRoutes = require("./routes/cashRoutes");
 const investRoutes = require("./routes/investRoutes");
 const expenseRoutes = require("./routes/expenseRoutes");
+const expenseTwoRoutes = require("./routes/expenseTwoRoutes");
 const cors = require("cors"); // 引入 cors 中间件
 require("dotenv").config();
 
@@ -32,7 +33,8 @@ app.use(cors());
     calculateRoutes,
     cashRoutes,
     investRoutes,
-    expenseRoutes
+    expenseRoutes,
+    expenseTwoRoutes
   ];
 
   routes.forEach(route => {

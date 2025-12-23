@@ -13,9 +13,11 @@ import {
     Upload
 } from "antd";
 import dayjs from 'dayjs';
+import * as XLSX from "xlsx";
+import { importExpenseTwoRecords, getExpenseTwoByMonth } from "../api/expenseTwo";
 const { Title, Text } = Typography;
-
 const { Header, Content } = Layout;
+
 export default function Expense() {
     const [datePicker, setDatePicker] = useState(dayjs(new Date()));
     const datePickerOnChange = (date, dateString) => {
@@ -23,7 +25,7 @@ export default function Expense() {
         setDatePicker(date);
 
     }
-    const parseCsvAndValidate = (text) => {
+    const parseAliCsvAndValidate = async (text) => {
         const lines = text.split(/\r?\n/); // 支持 \n 或 \r\n
         const data = [];
 
@@ -33,15 +35,46 @@ export default function Expense() {
 
             const cols = line.split(",");
             if (cols.length < 4) continue; // 不够列跳过
-
             data.push({
-                date: cols[0],       // 第一列
+                expenseDate: cols[0],       // 第一列
                 category: cols[1],   // 第二列
                 amount: cols[3],  // 第四列
                 payObject: cols[4],
+                payMethod: cols[5],
             });
         }
-        console.log(data);
+        try {
+            await importExpenseTwoRecords(data);
+
+        } catch (error) {
+            console.log(error);
+        }
+
+        // console.log(data);
+    }
+
+    const parseWechatXlsx = (data) => {
+        const workbook = XLSX.read(data, { type: "array" }); // 解析为 workbook
+        // 选择第一个 sheet
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+
+        // 转为 JSON
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }); // header:1 返回二维数组
+        // jsonData 是二维数组，每一行是一个数组
+
+        console.log(jsonData);
+        const formatedData = [];
+        // 从17行开始
+        for (let i = 16; i < jsonData.length; i++) {
+            const row = jsonData[i];
+            formatedData.push({
+                date: row[0],
+                payObject: row[2] + row[3],
+                amount: row[5],
+                payMethod: row[6],
+            });
+        }
     }
     return (
         <Layout className="h-screen ">
@@ -82,7 +115,7 @@ export default function Expense() {
                                             const arrayBuffer = e.target.result; // 读取为 ArrayBuffer
                                             const decoder = new TextDecoder("gbk"); // 或 "utf-16le"
                                             const text = decoder.decode(arrayBuffer);
-                                            parseCsvAndValidate(text);
+                                            parseAliCsvAndValidate(text);
                                         };
                                         reader.readAsArrayBuffer(file);
                                         return false; // 阻止默认上传
@@ -96,9 +129,30 @@ export default function Expense() {
                                         支付宝
                                     </Button>
                                 </Upload>
-                                <Button type="primary" >
-                                    微信
-                                </Button></Space>
+                                <Upload
+                                    //已经对文件类型做了校验
+                                    accept=".xlsx"
+                                    beforeUpload={(file) => {
+                                        const reader = new FileReader();
+                                        //onload是readastext的回调。一般性，反而是回调函数写在前头。
+                                        reader.onload = (e) => {
+
+                                            // 调用你的 CSV 校验和解析逻辑
+                                            const data = new Uint8Array(e.target.result);
+                                            parseWechatXlsx(data);
+
+
+
+                                        }
+                                        reader.readAsArrayBuffer(file); // XLSX 文件必须用 arrayBuffer
+                                        return false; // 阻止 Upload 自动上传
+                                    }}
+                                >
+                                    <Button type="primary" >
+                                        微信
+                                    </Button>
+                                </Upload>
+                            </Space>
 
 
                         </Card>
