@@ -20,11 +20,12 @@ function Login() {
       //只有登录认证成功是200，其他都是4xx
       try {
         const response = await login(user);
-        console.log(response.status);
+        console.log(response);
         if (response.status === 200) {
           //登录成功把用户信息放在localStorage
           localStorage.setItem("accessToken", response.data.accessToken);
           localStorage.setItem("user", response.data.user);
+          localStorage.setItem("userId", response.data.user._id);
 
 
           console.log(navigator); // 显示浏览器的 User-Agent 字符串

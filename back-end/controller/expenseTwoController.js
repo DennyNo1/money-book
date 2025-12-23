@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const User = require('../model/userModel');
 const ExpenseTwo = require("../model/expenseTwoModel");
-const { isValidDate } = require('../utils/dateValidator');
+const { isValidDate, validateYearMonth } = require('../utils/dateValidator');
 
 //第一，把支付宝等支付记录，导入到数据库
 // 判断函数示例
@@ -83,12 +83,48 @@ const importExpenseTwoRecords = async (req, res) => {
     });
 }
 
+//第二，为前端获取指定月份的记录，创建api
 const getExpenseTwoByMonth = async (req, res) => {
     const userId = req.user.userId;
     const { year, month } = req.params;
     //验证year和month
+    //对于这种可数字可字符串的变量，前端传过来还是字符串比较好
+    //交给dateValidator.js中的validateYearMonth函数处理
+    try {
+        const { year, month } = validateYearMonth(year, month);
+        //把年和月重新组成一个Date范围再去查询
+        const start = new Date(year, month - 1, 1);
+        const end = new Date(year, month, 1);
+        const expenseTwoRecords = await ExpenseTwo.find({
+            userId: mongoose.Types.ObjectId(userId),
+            // $gte = 大于等于（>=）
+            // lt = 小于（<）
+            expenseDate: {
+                $gte: start,
+                $lt: end
+            }
+        })
+        return res.status(200).json({
+            message: 'Records fetched successfully',
+            records: expenseTwoRecords
+        });
+    }
+    catch (error) {
+        //判断是否为系统错误,抛出即交给全局错误处理器处理
+        if (isSystemError(error)) {
+            // 直接抛出，停止批量插入
+            // throw error 会立刻终止当前函数的执行。
+            throw error;
+        }
+        console.error('Error inserting record:', error);
+        return res.status(400).json({
+            //统一的400错误返回格式
+            error: 'Invalid year or month',
+            message: error.message
+        });
+    }
+
+
 
 }
 
-
-//第二，为前端获取指定月份的记录，创建api
