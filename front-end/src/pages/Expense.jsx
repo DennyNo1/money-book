@@ -15,11 +15,17 @@ import {
 import dayjs from 'dayjs';
 import * as XLSX from "xlsx";
 import { importExpenseTwoRecords, getExpenseTwoByMonth } from "../api/expenseTwo";
+import { categorizeWechatRecordWithAI } from "../api/ai";
+
+
+
+
 const { Title, Text } = Typography;
 const { Header, Content } = Layout;
 
 export default function Expense() {
     const [datePicker, setDatePicker] = useState(dayjs(new Date()));
+
     const datePickerOnChange = (date, dateString) => {
         console.log(date, dateString);
         setDatePicker(date);
@@ -53,7 +59,7 @@ export default function Expense() {
         // console.log(data);
     }
 
-    const parseWechatXlsx = (data) => {
+    const parseWechatXlsx = async (data) => {
         const workbook = XLSX.read(data, { type: "array" }); // 解析为 workbook
         // 选择第一个 sheet
         const firstSheetName = workbook.SheetNames[0];
@@ -63,19 +69,30 @@ export default function Expense() {
         const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }); // header:1 返回二维数组
         // jsonData 是二维数组，每一行是一个数组
 
-        console.log(jsonData);
         const formatedData = [];
         // 从17行开始
         for (let i = 16; i < jsonData.length; i++) {
             const row = jsonData[i];
             formatedData.push({
+                //日期、金额、支付对象、支付方式，差个类别，交给后端AI去判断
                 date: row[0],
                 payObject: row[2] + row[3],
                 amount: row[5],
                 payMethod: row[6],
             });
         }
+
+        //之后把consolelog替换成消息提示
+        try {
+            console.log(formatedData);
+            const res = await categorizeWechatRecordWithAI(formatedData);
+            console.log("AI返回的结果是：", res);
+        } catch (err) {
+            console.log("调用AI接口出错：", err);
+        }
+
     }
+
     return (
         <Layout className="h-screen ">
             {/* AppBar */}
@@ -86,7 +103,6 @@ export default function Expense() {
                 </div>
                 <Button onClick={() => window.history.back()}
                 >返回</Button>
-
             </Header>
 
             <Content className="px-6 bg-gradient-to-r from-green-100 to-white ">
@@ -137,7 +153,7 @@ export default function Expense() {
                                         //onload是readastext的回调。一般性，反而是回调函数写在前头。
                                         reader.onload = (e) => {
 
-                                            // 调用你的 CSV 校验和解析逻辑
+                                            // 调用xlsx 校验和解析逻辑
                                             const data = new Uint8Array(e.target.result);
                                             parseWechatXlsx(data);
 

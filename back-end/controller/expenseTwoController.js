@@ -134,9 +134,6 @@ const getExpenseTwoByMonth = async (req, res) => {
             message: error.message
         });
     }
-
-
-
 }
 
 module.exports = {
