@@ -1,7 +1,7 @@
 import apiClient from "./apiClient";
-export const importExpenseTwoRecords = async (records) => {
+export const importAliRecords = async (records) => {
     try {
-        const response = await apiClient.post("/expenseTwo", { records });
+        const response = await apiClient.post("/expenseTwo/ali", { records });
         return response;
 
     } catch (error) {
@@ -10,6 +10,15 @@ export const importExpenseTwoRecords = async (records) => {
     }
 
 };
+export const importWechatRecordWithAI = async (inputData) => {
+    try {
+        const response = await apiClient.post("/expenseTwo/wechat", { wechatRecords: inputData });
+        return response;
+    } catch (error) {
+        console.error("Error fetching AI response:", error);
+        throw error;
+    }
+}
 
 export const getExpenseTwoByMonth = async (year, month) => {
     try {

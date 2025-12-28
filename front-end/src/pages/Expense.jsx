@@ -14,8 +14,8 @@ import {
 } from "antd";
 import dayjs from 'dayjs';
 import * as XLSX from "xlsx";
-import { importExpenseTwoRecords, getExpenseTwoByMonth } from "../api/expenseTwo";
-import { categorizeWechatRecordWithAI } from "../api/ai";
+import { importAliRecords, getExpenseTwoByMonth } from "../api/expenseTwo";
+import { importWechatRecordWithAI } from "../api/expenseTwo";
 
 
 
@@ -50,7 +50,7 @@ export default function Expense() {
             });
         }
         try {
-            await importExpenseTwoRecords(data);
+            await importAliRecords(data);
 
         } catch (error) {
             console.log(error);
@@ -70,14 +70,14 @@ export default function Expense() {
         // jsonData 是二维数组，每一行是一个数组
 
         const formatedData = [];
-        // 从17行开始
-        for (let i = 16; i < jsonData.length; i++) {
+        // 从18行开始
+        for (let i = 17; i < jsonData.length; i++) {
             const row = jsonData[i];
             formatedData.push({
                 //日期、金额、支付对象、支付方式，差个类别，交给后端AI去判断
-                date: row[0],
+                expenseDate: row[0],
                 payObject: row[2] + row[3],
-                amount: row[5],
+                amount: row[5].slice(1),
                 payMethod: row[6],
             });
         }
@@ -85,7 +85,7 @@ export default function Expense() {
         //之后把consolelog替换成消息提示
         try {
             console.log(formatedData);
-            const res = await categorizeWechatRecordWithAI(formatedData);
+            const res = await importWechatRecordWithAI(formatedData);
             console.log("AI返回的结果是：", res);
         } catch (err) {
             console.log("调用AI接口出错：", err);
