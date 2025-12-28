@@ -11,7 +11,7 @@ const cashRoutes = require("./routes/cashRoutes");
 const investRoutes = require("./routes/investRoutes");
 const expenseRoutes = require("./routes/expenseRoutes");
 const expenseTwoRoutes = require("./routes/expenseTwoRoutes");
-const aiRoutes = require("./routes/aiRoutes");
+
 const cors = require("cors"); // 引入 cors 中间件
 require("dotenv").config();
 
@@ -37,7 +37,7 @@ app.use(cors());
     investRoutes,
     expenseRoutes,
     expenseTwoRoutes,
-    aiRoutes
+
 
   ];
 

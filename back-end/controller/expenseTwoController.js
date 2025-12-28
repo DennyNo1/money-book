@@ -158,7 +158,7 @@ const postAliRecords = async (req, res) => {
 //第二，为前端获取指定月份的记录，创建api
 const getExpenseTwoByMonth = async (req, res) => {
     const userId = req.user.userId;
-    const { year: yearStr, month: monthStr } = req.params;
+    const { year: yearStr, month: monthStr } = req.query;
     //验证year和month
     //对于这种可数字可字符串的变量，前端传过来还是字符串比较好
     //交给dateValidator.js中的validateYearMonth函数处理
@@ -168,7 +168,7 @@ const getExpenseTwoByMonth = async (req, res) => {
         const start = new Date(year, month - 1, 1);
         const end = new Date(year, month, 1);
         const expenseTwoRecords = await ExpenseTwo.find({
-            userId: mongoose.Types.ObjectId(userId),
+            userId: new mongoose.Types.ObjectId(userId),
             // $gte = 大于等于（>=）
             // lt = 小于（<）
             expenseDate: {
@@ -182,18 +182,8 @@ const getExpenseTwoByMonth = async (req, res) => {
         });
     }
     catch (error) {
-        //判断是否为系统错误,抛出即交给全局错误处理器处理
-        if (isSystemError(error)) {
-            // 直接抛出，停止批量插入
-            // throw error 会立刻终止当前函数的执行。
-            throw error;
-        }
-        console.error('Error inserting record:', error);
-        return res.status(400).json({
-            //统一的400错误返回格式
-            error: 'Invalid year or month',
-            message: error.message
-        });
+        //假设查询时除了校验错误，只有系统级错误
+        throw error;
     }
 }
 

@@ -20,34 +20,35 @@ function ChartComponent(props) {
     const { chartType, chartData, chartOptions } = pieChart;
     // 准备数据
     const data = chartData
-        || {
-        labels: ['一月', '二月', '三月', '四月', '五月', '六月'],
-        datasets: [
-            {
-                label: '销售额',
-                data: [12, 19, 3, 5, 2, 3],
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1,
-            },
-        ],
-    };
+    //     || 
+    //     {
+    //     labels: ['一月', '二月', '三月', '四月', '五月', '六月'],
+    //     datasets: [
+    //         {
+    //             label: '销售额',
+    //             data: [12, 19, 3, 5, 2, 3],
+    //             backgroundColor: 'rgba(75, 192, 192, 0.2)',
+    //             borderColor: 'rgba(75, 192, 192, 1)',
+    //             borderWidth: 1,
+    //         },
+    //     ],
+    // };
 
     // 配置选项
     const options = chartOptions
-        || {
-        scales: {
-            y: {
-                beginAtZero: true
-            }
-        },
-        plugins: {
-            title: {
-                display: true,
-                text: '默认标题'
-            }
-        }
-    };
+    //     || {
+    //     scales: {
+    //         y: {
+    //             beginAtZero: true
+    //         }
+    //     },
+    //     plugins: {
+    //         title: {
+    //             display: true,
+    //             text: '默认标题'
+    //         }
+    //     }
+    // };
 
     // 根据chartType参数选择要渲染的图表类型
     const renderChart = () => {

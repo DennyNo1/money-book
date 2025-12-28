@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
     Row,
     Col,
@@ -14,8 +14,11 @@ import {
 } from "antd";
 import dayjs from 'dayjs';
 import * as XLSX from "xlsx";
-import { importAliRecords, getExpenseTwoByMonth } from "../api/expenseTwo";
+import { importAliRecords, getExpenseRecordsMonthly } from "../api/expenseTwo";
 import { importWechatRecordWithAI } from "../api/expenseTwo";
+import ChartComponent from "../components/ChartComponent";
+import { CATEGORY_COLORS } from "../utils/CategoryColors";
+
 
 
 
@@ -25,12 +28,98 @@ const { Header, Content } = Layout;
 
 export default function Expense() {
     const [datePicker, setDatePicker] = useState(dayjs(new Date()));
+    const [recordsMonthly, setRecordsMonthly] = useState([]);
+    useEffect(() => {
+        const fetchData = async () => {
+            const res = await getExpenseRecordsMonthly(datePicker.year(), datePicker.month() + 1);
+            setRecordsMonthly(res.data.records);
+
+        };
+        fetchData();
+
+    }, [datePicker]);
 
     const datePickerOnChange = (date, dateString) => {
         console.log(date, dateString);
         setDatePicker(date);
 
     }
+    //
+    const totalAmountMonthly = useMemo(() => {
+        let total = 0;
+        for (let i = 0; i < recordsMonthly.length; i++) {
+            total += recordsMonthly[i].amount;
+        }
+        //只保留两位小数
+        return Number(total.toFixed(2));
+    }, [recordsMonthly]);
+
+    const maxAmountMonthly = useMemo(() => {
+        let max = 0;
+        recordsMonthly.forEach(r => {
+            max = Math.max(max, r.amount);
+        });
+        return max;
+    }, [recordsMonthly]);
+
+
+    const pieData = useMemo(() => {
+        if (!recordsMonthly.length) return null;
+
+        const categoryMap = {};
+
+        recordsMonthly.forEach(r => {
+            categoryMap[r.category] =
+                (categoryMap[r.category] || 0) + r.amount;
+        });
+
+        return {
+            labels: Object.keys(categoryMap),
+            datasets: [
+                {
+                    data: Object.values(categoryMap),
+                    backgroundColor: Object.keys(categoryMap).map(
+                        c => CATEGORY_COLORS[c] || '#9ca3af'
+                    ),
+                },
+            ],
+        };
+    }, [recordsMonthly]);
+    const pieOptions = {
+        // 响应式
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            // title: {
+            //   display: true,
+            //   text: '现金流图分析',
+            //   font: {
+            //     size: 20,
+            //     weight: 'bold'
+            //   }
+            // },
+
+        },
+
+        // 添加点击事件处理器
+        onClick: (event, elements) => {
+            // // 检查是否点击到了图表元素
+            // if (elements.length > 0) {
+            //     const clickedElementIndex = elements[0].index;
+            //     const clickedItem = cashItems[clickedElementIndex];
+            //     // 执行对应的功能
+            //     handlePieChartClick(clickedItem, clickedElementIndex);
+            // }
+        },
+
+    }
+    const pieChart = useMemo(() => ({
+        chartType: 'pie',
+        chartData: pieData,
+        chartOptions: pieOptions,
+    }), [pieData, pieOptions]);
+
+    //用于解析支付宝支出csv文件并获取对应的数据
     const parseAliCsvAndValidate = async (text) => {
         const lines = text.split(/\r?\n/); // 支持 \n 或 \r\n
         const data = [];
@@ -59,6 +148,7 @@ export default function Expense() {
         // console.log(data);
     }
 
+    //用于解析微信支出xlsx文件并获取对应数据
     const parseWechatXlsx = async (data) => {
         const workbook = XLSX.read(data, { type: "array" }); // 解析为 workbook
         // 选择第一个 sheet
@@ -86,9 +176,9 @@ export default function Expense() {
         try {
             console.log(formatedData);
             const res = await importWechatRecordWithAI(formatedData);
-            console.log("AI返回的结果是：", res);
+
         } catch (err) {
-            console.log("调用AI接口出错：", err);
+            console.log(err);
         }
 
     }
@@ -158,7 +248,6 @@ export default function Expense() {
                                             parseWechatXlsx(data);
 
 
-
                                         }
                                         reader.readAsArrayBuffer(file); // XLSX 文件必须用 arrayBuffer
                                         return false; // 阻止 Upload 自动上传
@@ -181,12 +270,14 @@ export default function Expense() {
                         >
                             <div className="p-3 rounded-lg hover:bg-green-50 transition-colors duration-200">
                                 <Text type="secondary" className="block text-center text-sm">本月总支出</Text>
-                                <div className="text-lg font-bold text-green-500 text-center">123</div>
+                                <div className="text-lg font-bold text-blue-400 text-center">
+                                    {totalAmountMonthly}
+                                </div>
                             </div>
                             <div className="p-3 rounded-lg hover:bg-red-50 transition-colors duration-200">
                                 <Text type="secondary" className="block text-center text-sm">最大单笔支出</Text>
-                                <div className="text-lg font-bold text-red-500 text-center">
-                                    321
+                                <div className="text-lg font-bold text-amber-500 text-center">
+                                    {maxAmountMonthly}
                                 </div>
                             </div>
                         </Card>
@@ -195,12 +286,15 @@ export default function Expense() {
                         <Card
                             title={<div >支出分布</div>}
                         >
-                            {/* 这里的row和col是自适应高度，所以后续高度估计要固定，暂时让gap存在 */}
-                            <Empty
-                                image={Empty.PRESENTED_IMAGE_SIMPLE}
-                                description="还没有支出记录,欢迎添加"
-                            >
-                            </Empty>
+                            {pieData && <ChartComponent data={pieChart} />}
+                            {
+                                !pieData && <Empty
+                                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                                    description="还没有支出记录,欢迎添加"
+                                >
+                                </Empty>
+                            }
+
 
                         </Card>
                     </Col>

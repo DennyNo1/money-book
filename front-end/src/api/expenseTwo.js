@@ -20,9 +20,11 @@ export const importWechatRecordWithAI = async (inputData) => {
     }
 }
 
-export const getExpenseTwoByMonth = async (year, month) => {
+export const getExpenseRecordsMonthly = async (year, month) => {
     try {
-        const response = await apiClient.get(`/expenseTwo/${year}/${month}`);
+        const response = await apiClient.get(`/expenseTwo`, {
+            params: { year, month }
+        });
         return response;
     } catch (error) {
         console.error("Error fetching expense two records:", error);
