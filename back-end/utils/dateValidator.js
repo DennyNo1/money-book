@@ -22,8 +22,10 @@ function validateYearMonth(year, month) {
         throw new Error("invalid year format");
     }
 
-    if (!/^\d{2}$/.test(month)) {
-        throw new Error("invalid month format");
+    const m = Number(month);
+
+    if (!Number.isInteger(m) || m < 1 || m > 12) {
+        throw new Error("invalid month");
     }
 
     // 3️⃣ 数值校验

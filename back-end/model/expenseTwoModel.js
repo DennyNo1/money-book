@@ -46,7 +46,12 @@ const expenseTwoSchema = new mongoose.Schema({
         required: true
     },
 
-    //允许修改.以后再加相关field
+    // 上传文件来源
+    source: {
+        type: String,
+        required: true,
+        enum: ['alipay', 'wechat']
+    }
 
 });
 //复合唯一索引，主要为了防止重复导入，当然也可以加快查询

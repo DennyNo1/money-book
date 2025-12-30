@@ -8,13 +8,16 @@ const InvalidInputError = require("../error/InvalidInputError");
 function validateExpenseRecordFields(record) {
 
     //校验错误在controller中处理
-    const { expenseDate, amount, category, payObject, payMethod } = record;
-    if (!expenseDate || !amount || !category || !payObject || !payMethod) {
+    const { expenseDate, amount, category, payObject, payMethod, source } = record;
+    if (!expenseDate || !amount || !category || !payObject || !payMethod || !source) {
         throw new InvalidInputError('Missing or invalid fields');
     }
     // 把字符串转为数字
     const parsedAmount = Number(amount);
     // Number.isFinite(parsedAmount):只有在 x 是 number 且不是 NaN / Infinity / -Infinity 时，才返回 true。
+    if (source !== "alipay" && source !== "wechat") {
+        throw new InvalidInputError('Invalid source');
+    }
     if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
         throw new InvalidInputError('Invalid amount');
     }
