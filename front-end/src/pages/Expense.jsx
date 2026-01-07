@@ -23,6 +23,7 @@ import { importWechatRecordWithAI } from "../api/expenseTwo";
 import ChartComponent from "../components/ChartComponent";
 import { CATEGORY_COLORS } from "../utils/CategoryColors";
 import Papa from "papaparse";
+import ExpenseTwoModal from "../components/ExpenseTwoModal";
 
 
 
@@ -35,10 +36,12 @@ export default function Expense() {
     const [datePicker, setDatePicker] = useState(dayjs(new Date()));
     const [recordsMonthly, setRecordsMonthly] = useState([]);
     const [spinning, setSpinning] = useState(false);
-
+    const [hover, setHover] = useState(false);
+    const [modalVisible, setModalVisible] = useState(false);
     useEffect(() => {
         const fetchData = async () => {
             const res = await getExpenseRecordsMonthly(datePicker.year(), datePicker.month() + 1);
+
             setRecordsMonthly(res.data.records);
 
         };
@@ -85,8 +88,8 @@ export default function Expense() {
         const dateMap = {};
         sorted.forEach(r => {
             // 以天为单位
-            r.expenseDate = dayjs(r.expenseDate).format("YYYY-MM-DD");
-            dateMap[r.expenseDate] = (dateMap[r.expenseDate] || 0) + r.amount;
+            const day = dayjs(r.expenseDate).format("YYYY-MM-DD");
+            dateMap[day] = (dateMap[day] || 0) + r.amount;
 
         });
         return {
@@ -186,6 +189,7 @@ export default function Expense() {
             //     // 执行对应的功能
             //     handlePieChartClick(clickedItem, clickedElementIndex);
             // }
+
         },
 
     }
@@ -327,6 +331,12 @@ export default function Expense() {
 
     return (
         <Layout className="h-screen " >
+            <ExpenseTwoModal
+                modalVisible={modalVisible}
+                setModalVisible={setModalVisible}
+                modalData={recordsMonthly}
+            >
+            </ExpenseTwoModal>
             <Spin spinning={spinning} fullscreen />
             {/* AppBar */}
             <Header className="h-1/8 bg-gradient-to-r from-green-100 to-white shadow-md px-6 flex justify-between items-center" >
@@ -344,7 +354,17 @@ export default function Expense() {
                         <Card
                             title={<div >月份选择</div>}
                         >
-                            <DatePicker onChange={datePickerOnChange} picker="month" defaultValue={datePicker} />
+                            <Space>
+                                <DatePicker onChange={datePickerOnChange} picker="month" defaultValue={datePicker} />
+                                <Button
+
+                                    onClick={() => {
+                                        setModalVisible(true);
+                                    }}
+                                >
+                                    本月详情
+                                </Button>
+                            </Space>
                         </Card>
                     </Col>
                     <Col span={6}>
@@ -372,11 +392,16 @@ export default function Expense() {
                                         return false; // 阻止默认上传
                                     }}
                                 >
-                                    <Button style={{
-                                        backgroundColor: '#1E90FF',
-                                        borderColor: '#1E90FF',
-                                        color: '#fff'                // 自定义文字色
-                                    }} >
+                                    <Button
+                                        style={{
+                                            backgroundColor: hover ? '#1C86EE' : '#1E90FF',
+                                            borderColor: hover ? '#1C86EE' : '#1E90FF',
+                                            color: '#fff',
+                                            transition: 'all 0.3s ease',
+                                        }}
+                                        onMouseEnter={() => setHover(true)}
+                                        onMouseLeave={() => setHover(false)}
+                                    >
                                         支付宝
                                     </Button>
                                 </Upload>
@@ -411,14 +436,15 @@ export default function Expense() {
                     <Col span={4}>
                         <Card
                             title={<div >核心数字</div>}
+
                         >
-                            <div className="p-3 rounded-lg hover:bg-green-50 transition-colors duration-200">
+                            <div className="p-3 rounded-lg hover:bg-blue-50 transition-colors duration-200">
                                 <Text type="secondary" className="block text-center text-sm">本月总支出</Text>
                                 <div className="text-lg font-bold text-blue-400 text-center">
                                     {totalAmountMonthly}
                                 </div>
                             </div>
-                            <div className="p-3 rounded-lg hover:bg-red-50 transition-colors duration-200">
+                            <div className="p-3 rounded-lg hover:bg-amber-50 transition-colors duration-200">
                                 <Text type="secondary" className="block text-center text-sm">最大单笔支出</Text>
                                 <Popover
                                     content={maxExpenseContent}
@@ -462,7 +488,6 @@ export default function Expense() {
                             >
                             </Empty>
                             }
-
                         </Card>
                     </Col>
                 </Row>
