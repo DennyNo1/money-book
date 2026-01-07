@@ -41,9 +41,10 @@ const expenseTwoSchema = new mongoose.Schema({
     note: {
         type: String,
     },
+    // 支付宝csv账单的极个别记录的支付方式是空的
     payMethod: {
         type: String,
-        required: true
+
     },
 
     // 上传文件来源

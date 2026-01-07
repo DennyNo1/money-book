@@ -9,28 +9,36 @@ function validateExpenseRecordFields(record) {
 
     //校验错误在controller中处理
     const { expenseDate, amount, category, payObject, payMethod, source } = record;
-    if (!expenseDate || !amount || !category || !payObject || !payMethod || !source) {
+    if (!expenseDate || !amount || !category || !payObject || !source) {
+        console.error('Missing or invalid fields:', record);
         throw new InvalidInputError('Missing or invalid fields');
     }
     // 把字符串转为数字
     const parsedAmount = Number(amount);
     // Number.isFinite(parsedAmount):只有在 x 是 number 且不是 NaN / Infinity / -Infinity 时，才返回 true。
     if (source !== "alipay" && source !== "wechat") {
+        console.error('Invalid source:', record);
         throw new InvalidInputError('Invalid source');
     }
     if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+        console.error('Invalid amount:', record);
         throw new InvalidInputError('Invalid amount');
     }
     if (typeof payObject !== 'string' || payObject.trim() === '') {
+        console.error('Invalid payObject:', record);
         throw new InvalidInputError('Invalid payObject');
     }
-    if (typeof payMethod !== 'string' || payMethod.trim() === '') {
-        throw new InvalidInputError('Invalid payMethod');
-    }
+    // 支付宝csv账单的极个别记录的支付方式是空的
+    // if (typeof payMethod !== 'string' || payMethod.trim() === '') {
+    //     console.error('Invalid payMethod:', record);
+    //     throw new InvalidInputError('Invalid payMethod');
+    // }
     if (typeof category !== 'string' || category.trim() === '') {
+        console.error('Invalid category:', record);
         throw new InvalidInputError('Invalid category');
     }
     if (!isValidDate(expenseDate)) {
+        console.error('Invalid expenseDate:', record);
         throw new InvalidInputError('Invalid expenseDate');
     }
 }
@@ -66,8 +74,9 @@ async function insertExpenseTwoRecords(records, userId) {
             //第二层是储存时的错误，因为我这里允许插入失败，那么在这里处理。
             //这个代表重复插入
             //理论上其他的校验error是不存在的
+            // 重复插入，事实上是错误，但是逻辑上不应该被作为错误，所以不在日志中打印
             if (error.name === 'MongoServerError' && error.code === 11000) {
-                console.error('Error inserting record:', error);
+                // console.error('Error inserting record:', error);
                 errors.push({ record, error: error.message });
                 failedCount++;
             }

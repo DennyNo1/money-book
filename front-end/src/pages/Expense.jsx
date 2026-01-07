@@ -12,6 +12,8 @@ import {
     Space,
     Upload,
     Spin,
+    Tooltip,
+    Popover
 
 } from "antd";
 import dayjs from 'dayjs';
@@ -20,6 +22,7 @@ import { importAliRecords, getExpenseRecordsMonthly } from "../api/expenseTwo";
 import { importWechatRecordWithAI } from "../api/expenseTwo";
 import ChartComponent from "../components/ChartComponent";
 import { CATEGORY_COLORS } from "../utils/CategoryColors";
+import Papa from "papaparse";
 
 
 
@@ -58,11 +61,14 @@ export default function Expense() {
         return Number(total.toFixed(2));
     }, [recordsMonthly]);
 
-    const maxAmountMonthly = useMemo(() => {
-        let max = 0;
-        recordsMonthly.forEach(r => {
-            max = Math.max(max, r.amount);
-        });
+    const maxExpenseRecordMonthly = useMemo(() => {
+        if (!recordsMonthly.length) return null;
+        let max = recordsMonthly[0];
+        for (let i = 1; i < recordsMonthly.length; i++) {
+            if (max.amount < recordsMonthly[i].amount) {
+                max = recordsMonthly[i];
+            }
+        }
         return max;
     }, [recordsMonthly]);
 
@@ -95,8 +101,6 @@ export default function Expense() {
                 },
             ],
         }
-
-
     }, [recordsMonthly]);
     // line先不需要option
     const lineOptions = {
@@ -125,14 +129,11 @@ export default function Expense() {
 
     const pieData = useMemo(() => {
         if (!recordsMonthly.length) return null;
-
         const categoryMap = {};
-
         recordsMonthly.forEach(r => {
             categoryMap[r.category] =
                 (categoryMap[r.category] || 0) + r.amount;
         });
-
         return {
             labels: Object.keys(categoryMap),
             datasets: [
@@ -145,21 +146,36 @@ export default function Expense() {
             ],
         };
     }, [recordsMonthly]);
+
+
     const pieOptions = {
         // 响应式
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-            // title: {
-            //   display: true,
-            //   text: '现金流图分析',
-            //   font: {
-            //     size: 20,
-            //     weight: 'bold'
-            //   }
-            // },
+            legend: {
+                position: 'right',   // ✅ 正确
+            },
+            tooltip: {
+                callbacks: {
+                    label(context) {
+                        const label = context.label || '';
+                        const value = context.parsed.toFixed(2);
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const percent = ((value / total) * 100).toFixed(1);
+                        const listData = [
+                        ];
 
+                        return [
+                            `分类：${label}`,
+                            `金额：¥${value}`,
+                            `占比：${percent}%`
+                        ];
+                    }
+                }
+            },
         },
+
 
         // 添加点击事件处理器
         onClick: (event, elements) => {
@@ -182,35 +198,84 @@ export default function Expense() {
 
     //用于解析支付宝支出csv文件并获取对应的数据
     const parseAliCsvAndValidate = async (text) => {
-        const lines = text.split(/\r?\n/); // 支持 \n 或 \r\n
         const data = [];
+        Papa.parse(text, {
+            skipEmptyLines: true,
 
-        for (let i = 11; i < lines.length; i++) { // 第 12 行 index = 11
-            const line = lines[i].trim();
-            if (!line) continue; // 空行跳过
+            complete: async (result) => {
+                const rows = result.data;
+                if (!rows || rows.length < 12) {
+                    message.error("CSV 文件格式不正确");
+                    return;
+                }
+                // ⚠️ 支付宝 CSV：第 11 行是表头（index = 10）
+                const headerRow = rows[10];
+                console.log("📌 表头:", headerRow);
+                const colIndex = detectColumns(headerRow);
+                console.log("📌 识别到的列索引:", colIndex);
 
-            const cols = line.split(",");
-            if (cols.length < 4) continue; // 不够列跳过
-            data.push({
-                expenseDate: cols[0],       // 第一列
-                category: cols[1],   // 第二列
-                amount: cols[3],  // 第四列
-                payObject: cols[4],
-                payMethod: cols[5],
-                source: "alipay"
-            });
-        }
-        try {
-            await importAliRecords(data);
-            message.success("导入支付宝记录成功");
+                // if (!colIndex.amount || !colIndex.date) {
+                //     message.error("无法识别金额或日期列");
+                //     return;
+                // }
 
-        } catch (error) {
-            console.log(error);
-            message.error("导入支付宝记录失败失败，请检查文件格式是否正确和反馈给Denny");
-        }
+                // 从第 12 行开始是数据
+                for (let i = 11; i < rows.length; i++) {
+                    const row = rows[i];
+                    console.log("📌 当前行:", row);
+                    if (!row || row.length < headerRow.length) continue;
+                    const record = {
+                        expenseDate: row[colIndex.date],
+                        category: row[colIndex.category],
+                        amount: normalizeAmount(row[colIndex.amount]),
+                        payObject: row[colIndex.payObject],
+                        //
+                        payMethod: row[colIndex.payMethod],
+                        source: "alipay",
+                    };
+                    // 🚨 强校验（发现问题立刻定位）
+                    if (typeof record.amount !== "number" || isNaN(record.amount)) {
+                        console.error(`❌ 第 ${i + 1} 行金额异常`, row);
+                        continue;
+                    }
+                    data.push(record);
+                }
+                console.log("✅ 最终导入数据:", data);
+                try {
+                    await importAliRecords(data);
+                    message.success(`成功导入 ${data.length} 条支付宝记录`);
+                } catch (err) {
+                    console.error(err);
+                    message.error("导入失败，请查看控制台");
+                }
+            },
+        });
 
-        // console.log(data);
-    }
+    };
+    const detectColumns = (headerRow) => {
+        const map = {};
+        headerRow.forEach((name, idx) => {
+            if (!name) return;
+            const col = String(name).trim();
+            if (col.includes("记录时间")) map.date = idx;
+            else if (col.includes("金额")) map.amount = idx;
+            else if (col.includes("分类")) map.category = idx;
+            else if (col.includes("备注")) map.payObject = idx;
+            else if (col.includes("账户")) map.payMethod = idx;
+        });
+        return map;
+    };
+    const normalizeAmount = (val) => {
+        if (val == null) return null;
+        return Number(
+            String(val)
+                .replace(/,/g, "")   // 去千分位
+                .replace(/"/g, "")   // 去引号
+                .trim()
+        );
+    };
+
+
 
     //用于解析微信支出xlsx文件并获取对应数据
     const parseWechatXlsx = async (data) => {
@@ -249,19 +314,29 @@ export default function Expense() {
         }
 
     }
+    const maxExpenseContent = maxExpenseRecordMonthly && (
+        <div style={{ minWidth: 200 }}>
+            <div><b>金额：</b>¥ {maxExpenseRecordMonthly.amount}</div>
+            <div><b>日期：</b>{dayjs(maxExpenseRecordMonthly.expenseDate).format("YYYY-MM-DD")}</div>
+            <div><b>分类：</b>{maxExpenseRecordMonthly.category}</div>
+            <div><b>对象：</b>{maxExpenseRecordMonthly.payObject}</div>
+            <div><b>方式：</b>{maxExpenseRecordMonthly.payMethod}</div>
+            <div><b>来源：</b>{maxExpenseRecordMonthly.source}</div>
+        </div>
+    );
 
     return (
-        <Layout className="h-screen ">
+        <Layout className="h-screen " >
             <Spin spinning={spinning} fullscreen />
             {/* AppBar */}
-            <Header className="h-1/8 bg-gradient-to-r from-green-100 to-white shadow-md px-6 flex justify-between items-center">
+            <Header className="h-1/8 bg-gradient-to-r from-green-100 to-white shadow-md px-6 flex justify-between items-center" >
                 <div className="flex items-center">
                     <img src="/logo.svg" alt="Logo" className="h-8 mr-4" />
                     <Title level={4} style={{ margin: 0 }}>支出管理</Title>
                 </div>
                 <Button onClick={() => window.history.back()}
                 >返回</Button>
-            </Header>
+            </Header >
 
             <Content className="px-6 bg-gradient-to-r from-green-100 to-white ">
                 <Row >
@@ -276,7 +351,6 @@ export default function Expense() {
                         <Card
                             title={<div >上传支出记录</div>}
                         >
-
                             <Space>
                                 <Upload
                                     //已经对文件类型做了校验
@@ -346,9 +420,17 @@ export default function Expense() {
                             </div>
                             <div className="p-3 rounded-lg hover:bg-red-50 transition-colors duration-200">
                                 <Text type="secondary" className="block text-center text-sm">最大单笔支出</Text>
-                                <div className="text-lg font-bold text-amber-500 text-center">
-                                    {maxAmountMonthly}
-                                </div>
+                                <Popover
+                                    content={maxExpenseContent}
+
+                                    placement="right"
+                                >
+                                    <div className="text-lg font-bold text-amber-500 text-center cursor-pointer">
+                                        {maxExpenseRecordMonthly
+                                            ? maxExpenseRecordMonthly.amount
+                                            : "-"}
+                                    </div>
+                                </Popover>
                             </div>
                         </Card>
                     </Col>
@@ -384,9 +466,7 @@ export default function Expense() {
                         </Card>
                     </Col>
                 </Row>
-
             </Content>
-
         </Layout >
     )
 }
