@@ -8,16 +8,24 @@ const ExpenseTwoModal = (props) => {
     // 对modalData中的日期进行格式化
     const formattedData = modalData.map(item => ({
         ...item,
-        expenseDate: dayjs(item.expenseDate).format('YYYY-MM-DD')
+        expenseDate: dayjs(item.expenseDate).format('YYYY-MM-DD HH:mm:ss'),
     }));
     const [searchText, setSearchText] = useState('');
     const [category, setCategory] = useState('');
     // 表格列
     const columns = [
-        { title: '日期', dataIndex: 'expenseDate', key: 'expenseDate' },
-        { title: '类别', dataIndex: 'category', key: 'category' },
-        { title: '支出对象', dataIndex: 'payObject', key: 'payObject' },
-        { title: '金额', dataIndex: 'amount', key: 'amount' },
+        {
+            title: '日期', dataIndex: 'expenseDate', key: 'expenseDate',
+            sorter: (a, b) =>
+                dayjs(a.expenseDate).valueOf() - dayjs(b.expenseDate).valueOf(),
+            width: 200,
+        },
+        { title: '类别', dataIndex: 'category', key: 'category', width: 100 },
+        {
+            title: '支出对象', dataIndex: 'payObject', key: 'payObject',
+            width: 500,
+        },
+        { title: '金额', dataIndex: 'amount', key: 'amount', sorter: (a, b) => Number(a.amount) - Number(b.amount), },
         { title: '支出方式', dataIndex: 'payMethod', key: 'payMethod' },
         { title: '来源', dataIndex: 'source', key: 'source' },
         {}
@@ -56,7 +64,6 @@ const ExpenseTwoModal = (props) => {
                     <Select.Option value="医疗保健">医疗保健</Select.Option>
                     <Select.Option value="休闲玩乐">休闲玩乐</Select.Option>
                     <Select.Option value="穿搭美容">穿搭美容</Select.Option>
-
                     <Select.Option value="生活服务">生活服务</Select.Option>
                     <Select.Option value="学习">学习</Select.Option>
                     <Select.Option value="转账">转账</Select.Option>
@@ -74,7 +81,7 @@ const ExpenseTwoModal = (props) => {
                 columns={columns}
                 dataSource={filteredData}
                 rowKey="_id"
-                pagination={{ pageSize: 5 }}
+            // pagination={{ pageSize: 5 }}
             />
         </Modal>)
 };
